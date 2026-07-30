@@ -1,0 +1,1420 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum PlanoEmpresa {
+  STARTER
+  PROFESSIONAL
+  ENTERPRISE
+}
+
+enum TipoUsuario {
+  ADMIN
+  GERENTE
+  CORRETOR
+}
+
+enum StatusCorretor {
+  ATIVO
+  INATIVO
+  FERIAS
+}
+
+enum TipoContaBancaria {
+  CORRENTE
+  POUPANCA
+  PAGAMENTO
+}
+
+enum AcaoHistoricoCorretor {
+  CRIADO
+  ATUALIZADO
+  STATUS_ALTERADO
+  FOTO_ATUALIZADA
+  META_ATUALIZADA
+  EQUIPE_ALTERADA
+}
+
+enum StatusImovel {
+  DISPONIVEL
+  RESERVADO
+  VENDIDO
+  ALUGADO
+  INATIVO
+}
+
+enum FinalidadeImovel {
+  VENDA
+  LOCACAO
+  VENDA_E_LOCACAO
+}
+
+enum TipoImovel {
+  APARTAMENTO
+  CASA
+  TERRENO
+  COMERCIAL
+  RURAL
+  KITNET
+  SOBRADO
+  COBERTURA
+  GALPAO
+  SALA_COMERCIAL
+}
+
+enum AcaoHistoricoImovel {
+  CRIADO
+  ATUALIZADO
+  DESATIVADO
+  REATIVADO
+  FOTO_ADICIONADA
+  FOTO_REMOVIDA
+  FOTO_PRINCIPAL
+  FOTO_REORDENADA
+  PUBLICADO
+  RETIRADO_SITE
+  PRECO_ALTERADO
+  PROPRIETARIO_ALTERADO
+  CHAVE_RETIRADA
+  CHAVE_DEVOLVIDA
+}
+
+enum OrigemCaptacaoImovel {
+  INDICACAO
+  PLACA
+  SITE
+  REDES_SOCIAIS
+  CAPTACAO_ATIVA
+  PROPRIETARIO
+  PARCEIRO
+  PORTAIS
+  OUTRO
+}
+
+enum SituacaoCaptacaoImovel {
+  EM_ANALISE
+  DOCUMENTACAO
+  ATIVO
+  NEGOCIACAO
+  SUSPENSO
+  ENCERRADO
+}
+
+enum AcaoChaveImovel {
+  RETIRADA
+  DEVOLUCAO
+}
+
+enum OcupacaoImovel {
+  DESOCUPADO
+  OCUPADO_PROPRIETARIO
+  OCUPADO_INQUILINO
+  EM_REFORMA
+}
+
+enum TipoCliente {
+  PROPRIETARIO
+  INQUILINO
+  COMPRADOR
+  LEAD
+}
+
+enum TipoPessoa {
+  PF
+  PJ
+}
+
+enum StatusCliente {
+  PROSPECTO
+  QUALIFICADO
+  NEGOCIACAO
+  CLIENTE
+  INATIVO
+  PERDIDO
+}
+
+enum InteresseCliente {
+  COMPRA
+  VENDA
+  LOCACAO
+  ADMINISTRACAO
+}
+
+enum AcaoHistoricoCliente {
+  CRIADO
+  ATUALIZADO
+  DESATIVADO
+  REATIVADO
+  ANOTACAO
+  INTERACAO
+  DOCUMENTO_ADICIONADO
+  DOCUMENTO_REMOVIDO
+  AVATAR_ATUALIZADO
+  FAVORITO_ADICIONADO
+  FAVORITO_REMOVIDO
+  COMPARTILHADO
+  VISITA_REGISTRADA
+  PROPOSTA_REGISTRADA
+}
+
+enum TipoContatoCliente {
+  CELULAR
+  COMERCIAL
+  RESIDENCIAL
+  WHATSAPP
+  OUTRO
+}
+
+enum TipoEnderecoCliente {
+  RESIDENCIAL
+  COMERCIAL
+  COBRANCA
+  OUTRO
+}
+
+enum TipoDocumentoCliente {
+  CPF
+  CNPJ
+  RG
+  COMPROVANTE_RESIDENCIA
+  CONTRATO
+  OUTRO
+}
+
+enum TipoInteracaoCliente {
+  LIGACAO
+  EMAIL
+  WHATSAPP
+  VISITA
+  REUNIAO
+  OUTRO
+}
+
+enum StatusVisitaCliente {
+  AGENDADA
+  REALIZADA
+  CANCELADA
+  NAO_COMPARECEU
+}
+
+enum StatusPropostaCliente {
+  RASCUNHO
+  ENVIADA
+  EM_ANALISE
+  ACEITA
+  RECUSADA
+  CANCELADA
+}
+
+enum StatusLead {
+  NOVO
+  CONTATO
+  VISITA_AGENDADA
+  PROPOSTA
+  NEGOCIACAO
+  FECHADO
+  PERDIDO
+}
+
+enum TipoEtapaPipeline {
+  ABERTA
+  GANHO
+  PERDIDO
+}
+
+enum AcaoHistoricoLead {
+  CRIADO
+  ATUALIZADO
+  MOVIDO
+  COMENTARIO
+  ANEXO_ADICIONADO
+  ANEXO_REMOVIDO
+  TAREFA_VINCULADA
+  AGENDA_VINCULADA
+  GANHO
+  PERDIDO
+  REABERTO
+}
+
+enum TipoContrato {
+  ALUGUEL
+  VENDA
+  ADMINISTRACAO
+}
+
+enum StatusContrato {
+  RASCUNHO
+  ATIVO
+  ENCERRADO
+  CANCELADO
+}
+
+enum StatusCobranca {
+  PENDENTE
+  PAGO
+  ATRASADO
+  CANCELADO
+}
+
+enum TipoLancamentoFinanceiro {
+  A_RECEBER
+  A_PAGAR
+}
+
+enum StatusLancamentoFinanceiro {
+  ABERTO
+  PARCIAL
+  LIQUIDADO
+  ATRASADO
+  CANCELADO
+}
+
+enum TipoCategoriaFinanceira {
+  RECEITA
+  DESPESA
+}
+
+enum StatusComissao {
+  PREVISTA
+  APROVADA
+  PAGA
+  CANCELADA
+}
+
+enum StatusCaixaDiario {
+  ABERTO
+  FECHADO
+}
+
+enum TipoMovimentoCaixa {
+  ENTRADA
+  SAIDA
+}
+
+enum StatusConciliacao {
+  ABERTA
+  CONCILIADA
+  CANCELADA
+}
+
+enum FormaPagamentoFinanceiro {
+  PIX
+  TED
+  DINHEIRO
+  CARTAO
+  BOLETO
+  CHEQUE
+  OUTRO
+}
+
+enum PrioridadeTarefa {
+  BAIXA
+  MEDIA
+  ALTA
+  URGENTE
+}
+
+enum StatusTarefa {
+  PENDENTE
+  EM_ANDAMENTO
+  CONCLUIDA
+  CANCELADA
+}
+
+enum TipoEventoAgenda {
+  VISITA
+  REUNIAO
+  LIGACAO
+  TAREFA
+}
+
+enum StatusEventoAgenda {
+  AGENDADO
+  CONFIRMADO
+  CONCLUIDO
+  CANCELADO
+}
+
+enum FrequenciaRepeticaoAgenda {
+  NENHUMA
+  DIARIA
+  SEMANAL
+  QUINZENAL
+  MENSAL
+}
+
+enum AcaoHistoricoAgenda {
+  CRIADO
+  ATUALIZADO
+  REAGENDADO
+  CONFIRMADO
+  CONCLUIDO
+  CANCELADO
+  LEMBRETE_ENVIADO
+}
+
+model Empresa {
+  id                 Int          @id @default(autoincrement())
+  nome               String
+  nomeFantasia       String?
+  cnpj               String?      @unique
+  creci              String?
+  email              String
+  telefone           String?
+  whatsapp           String?
+  siteUrl            String?
+  slogan             String?
+  logoUrl            String?
+  logoArquivo        String?
+  faviconUrl         String?
+  faviconArquivo     String?
+  corPrimaria        String?      @default("#0B1F3A")
+  corSecundaria      String?      @default("#C9A227")
+  endereco           String?
+  numero             String?
+  complemento        String?
+  bairro             String?
+  cidade             String?
+  estado             String?
+  cep                String?
+  instagram          String?
+  facebook           String?
+  linkedin           String?
+  youtube            String?
+  horarioAtendimento String?
+  googleMapsUrl      String?
+  latitude           Float?
+  longitude          Float?
+  siteTitulo         String?
+  siteDescricao      String?
+  seoKeywords        String?
+  siteAtivo          Boolean      @default(true)
+  siteExibirCorretores Boolean    @default(true)
+  siteExibirBlog     Boolean      @default(true)
+  plano              PlanoEmpresa @default(STARTER)
+  ativo              Boolean      @default(true)
+  createdAt          DateTime     @default(now())
+  updatedAt          DateTime     @updatedAt
+
+  usuarios  Usuario[]
+  imoveis   Imovel[]
+  clientes  Cliente[]
+  leads     Lead[]
+  contratos Contrato[]
+  cobrancas Cobranca[]
+  tarefas   Tarefa[]
+  fotosImoveis ImovelFoto[]
+  historicosImoveis ImovelHistorico[]
+  historicosChavesImoveis ImovelChaveHistorico[]
+  telefonesClientes ClienteTelefone[]
+  emailsClientes ClienteEmail[]
+  enderecosClientes ClienteEndereco[]
+  anotacoesClientes ClienteAnotacao[]
+  interacoesClientes ClienteInteracao[]
+  historicosClientes ClienteHistorico[]
+  documentosClientes ClienteDocumento[]
+  favoritosClientes ClienteFavorito[]
+  visitasClientes ClienteVisita[]
+  propostasClientes ClienteProposta[]
+  eventosAgenda EventoAgenda[]
+  historicosAgenda AgendaHistorico[]
+  notificacoesAgenda AgendaNotificacao[]
+  etapasPipeline PipelineEtapa[]
+  historicosLeads LeadHistorico[]
+  comentariosLeads LeadComentario[]
+  anexosLeads LeadAnexo[]
+  dadosBancariosClientes ClienteDadosBancarios[]
+  equipesCorretores CorretorEquipe[]
+  historicosCorretores CorretorHistorico[]
+  centrosCusto CentroCusto[]
+  categoriasFinanceiras CategoriaFinanceira[]
+  lancamentosFinanceiros LancamentoFinanceiro[]
+  comissoes Comissao[]
+  caixasDiarios CaixaDiario[]
+  movimentosCaixa MovimentoCaixa[]
+  conciliacoes Conciliacao[]
+  conciliacaoItens ConciliacaoItem[]
+}
+
+model Usuario {
+  id              Int             @id @default(autoincrement())
+  empresaId       Int
+  nome            String
+  email           String          @unique
+  senha           String
+  tipo            TipoUsuario     @default(CORRETOR)
+  telefone        String?
+  ativo           Boolean         @default(true)
+  fotoUrl          String?
+  fotoArquivo     String?
+  creci           String?
+  crea            String?
+  comissaoPadrao  Float           @default(5)
+  metaMensal      Float?
+  statusCorretor  StatusCorretor  @default(ATIVO)
+  equipeId        Int?
+  permissoes      String[]        @default([])
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+
+  empresa            Empresa         @relation(fields: [empresaId], references: [id])
+  equipe             CorretorEquipe? @relation(fields: [equipeId], references: [id])
+  imoveisCorretados  Imovel[]        @relation("CorretorImovel")
+  imoveisAngariados  Imovel[]        @relation("AngariadorImovel")
+  leads              Lead[]          @relation("CorretorLead")
+  contratos          Contrato[]      @relation("CorretorContrato")
+  tarefas            Tarefa[]
+  historicosImoveis  ImovelHistorico[]
+  historicosChavesImoveis ImovelChaveHistorico[]
+  clientesResponsavel Cliente[]      @relation("CorretorCliente")
+  anotacoesClientes  ClienteAnotacao[]
+  interacoesClientes ClienteInteracao[]
+  historicosClientes ClienteHistorico[]
+  visitasClientes    ClienteVisita[]
+  propostasClientes  ClienteProposta[]
+  eventosAgenda      EventoAgenda[]  @relation("ResponsavelEvento")
+  eventosCriados     EventoAgenda[]  @relation("CriadorEvento")
+  historicosAgenda   AgendaHistorico[]
+  notificacoesAgenda AgendaNotificacao[]
+  historicosLeads    LeadHistorico[]
+  comentariosLeads   LeadComentario[]
+  historicosCorretor CorretorHistorico[] @relation("CorretorAlvo")
+  historicosAutor    CorretorHistorico[] @relation("CorretorAutor")
+  comissoes          Comissao[]          @relation("CorretorComissao")
+  lancamentosFinanceiros LancamentoFinanceiro[] @relation("CorretorLancamento")
+  caixasFechados     CaixaDiario[]       @relation("CaixaFechadoPor")
+  conciliacoesCriadas Conciliacao[]      @relation("ConciliacaoCriador")
+
+  @@index([empresaId, ativo])
+  @@index([empresaId, statusCorretor])
+  @@index([empresaId, equipeId])
+}
+
+model Imovel {
+  id             Int          @id @default(autoincrement())
+  empresaId      Int
+  corretorId     Int?
+  proprietarioId Int?
+  codigo         String
+  titulo         String
+  descricao      String?
+  finalidade     FinalidadeImovel
+  tipo           TipoImovel
+  status         StatusImovel @default(DISPONIVEL)
+  valorVenda     Float?
+  valorAluguel   Float?
+  endereco       String
+  numero         String?
+  complemento    String?
+  bairro         String
+  cidade         String
+  estado         String
+  cep            String?
+  quartos        Int          @default(0)
+  suites         Int          @default(0)
+  banheiros      Int          @default(0)
+  vagas          Int          @default(0)
+  areaTerreno    Float?
+  areaConstruida Float?
+  areaUtil       Float?
+  piscina        Boolean      @default(false)
+  churrasqueira  Boolean      @default(false)
+  iptu           Float?
+  condominio     Float?
+  caracteristicas String[]    @default([])
+  exclusividade       Boolean         @default(false)
+  aceitaFinanciamento Boolean         @default(false)
+  aceitaFgts          Boolean         @default(false)
+  aceitaPermuta       Boolean         @default(false)
+  aceitaVeiculo       Boolean         @default(false)
+  estudaProposta      Boolean         @default(false)
+  ocupacao            OcupacaoImovel  @default(DESOCUPADO)
+  observacoesInternas String?
+  matricula           String?
+  inscricaoMunicipal  String?
+  habiteSe            Boolean         @default(false)
+  averbacao           Boolean         @default(false)
+  angariadorId               Int?
+  dataCaptacao               DateTime?
+  origemCaptacao             OrigemCaptacaoImovel?
+  situacaoCaptacao           SituacaoCaptacaoImovel?
+  proximoContatoProprietario DateTime?
+  localChaves         String?
+  codigoChave         String?
+  chavesNaImobiliaria Boolean         @default(true)
+  chaveDigital        String?
+  chaveRetirada       Boolean         @default(false)
+  chaveRetiradaEm     DateTime?
+  chaveRetiradaPor    String?
+  chaveDevolvidaEm    DateTime?
+  chaveObservacoes    String?
+  publicadoSite       Boolean  @default(true)
+  destaqueSite        Boolean  @default(false)
+  lancamento          Boolean  @default(false)
+  altoPadrao          Boolean  @default(false)
+  publicacaoComercial Boolean  @default(false)
+  oculto              Boolean  @default(false)
+  emRevisao           Boolean  @default(false)
+  slug                String?
+  seoTitulo           String?
+  seoDescricao        String?
+  tourVirtualUrl      String?
+  videoUrl            String?
+  plantaUrl           String?
+  latitude            Float?
+  longitude           Float?
+  ativo          Boolean      @default(true)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  empresa   Empresa    @relation(fields: [empresaId], references: [id])
+  corretor  Usuario?   @relation("CorretorImovel", fields: [corretorId], references: [id])
+  angariador Usuario?  @relation("AngariadorImovel", fields: [angariadorId], references: [id])
+  proprietario Cliente? @relation("ProprietarioImovel", fields: [proprietarioId], references: [id])
+  leads     Lead[]
+  contratos Contrato[]
+  fotos     ImovelFoto[]
+  historico ImovelHistorico[]
+  chaveHistorico ImovelChaveHistorico[]
+  favoritos ClienteFavorito[]
+  visitas   ClienteVisita[]
+  propostas ClienteProposta[]
+  interacoes ClienteInteracao[]
+  eventosAgenda EventoAgenda[]
+
+  @@unique([empresaId, codigo])
+  @@unique([empresaId, slug])
+  @@index([empresaId, ativo, createdAt])
+  @@index([empresaId, status])
+  @@index([empresaId, finalidade])
+  @@index([empresaId, tipo])
+  @@index([empresaId, corretorId])
+  @@index([empresaId, proprietarioId])
+  @@index([empresaId, angariadorId])
+  @@index([empresaId, exclusividade])
+  @@index([empresaId, ocupacao])
+  @@index([empresaId, chaveRetirada])
+  @@index([empresaId, publicadoSite, ativo, oculto, emRevisao])
+  @@index([empresaId, destaqueSite])
+  @@index([empresaId, situacaoCaptacao])
+  @@index([empresaId, proximoContatoProprietario])
+}
+
+model Cliente {
+  id                 Int              @id @default(autoincrement())
+  empresaId          Int
+  corretorId         Int?
+  tipo               TipoCliente      @default(LEAD)
+  tipoPessoa         TipoPessoa       @default(PF)
+  status             StatusCliente    @default(PROSPECTO)
+  nome               String
+  razaoSocial        String?
+  nomeFantasia       String?
+  cpfCnpj            String?
+  email              String?
+  telefone           String?
+  whatsapp           String?
+  endereco           String?
+  cidade             String?
+  estado             String?
+  notas              String?
+  origem             String?
+  interesses         InteresseCliente[] @default([])
+  faixaPrecoMin      Float?
+  faixaPrecoMax      Float?
+  cidadesInteresse   String[]         @default([])
+  tags               String[]         @default([])
+  avatarUrl          String?
+  avatarArquivo      String?
+  tokenCompartilhamento String?       @unique
+  ativo              Boolean          @default(true)
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
+
+  empresa               Empresa             @relation(fields: [empresaId], references: [id])
+  corretor              Usuario?            @relation("CorretorCliente", fields: [corretorId], references: [id])
+  leads                 Lead[]
+  contratos             Contrato[]          @relation("ClienteContrato")
+  contratosProprietario Contrato[]          @relation("ProprietarioContrato")
+  imoveisProprietario   Imovel[]            @relation("ProprietarioImovel")
+  tarefas               Tarefa[]
+  telefones             ClienteTelefone[]
+  emails                ClienteEmail[]
+  enderecos             ClienteEndereco[]
+  anotacoes             ClienteAnotacao[]
+  interacoes            ClienteInteracao[]
+  historico             ClienteHistorico[]
+  documentos            ClienteDocumento[]
+  favoritos             ClienteFavorito[]
+  visitas               ClienteVisita[]
+  propostas             ClienteProposta[]
+  eventosAgenda         EventoAgenda[]
+  dadosBancarios        ClienteDadosBancarios[]
+  lancamentosFinanceiros LancamentoFinanceiro[]
+
+  @@index([empresaId, ativo, createdAt])
+  @@index([empresaId, tipo])
+  @@index([empresaId, status])
+  @@index([empresaId, corretorId])
+  @@index([empresaId, cidade])
+  @@index([empresaId, cpfCnpj])
+}
+
+model ClienteDadosBancarios {
+  id               Int               @id @default(autoincrement())
+  empresaId        Int
+  clienteId        Int
+  banco            String
+  agencia          String?
+  conta            String?
+  tipoConta        TipoContaBancaria @default(CORRENTE)
+  pix              String?
+  titular          String?
+  documentoTitular String?
+  principal        Boolean           @default(false)
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+
+  empresa Empresa @relation(fields: [empresaId], references: [id])
+  cliente Cliente @relation(fields: [clienteId], references: [id], onDelete: Cascade)
+
+  @@index([empresaId, clienteId])
+}
+
+model CorretorEquipe {
+  id        Int      @id @default(autoincrement())
+  empresaId Int
+  nome      String
+  ativo     Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  empresa   Empresa   @relation(fields: [empresaId], references: [id])
+  corretores Usuario[]
+
+  @@index([empresaId, ativo])
+}
+
+model CorretorHistorico {
+  id         Int                  @id @default(autoincrement())
+  empresaId  Int
+  usuarioId  Int
+  autorId    Int
+  acao       AcaoHistoricoCorretor
+  alteracoes Json?
+  createdAt  DateTime             @default(now())
+
+  empresa Empresa @relation(fields: [empresaId], references: [id])
+  usuario Usuario @relation("CorretorAlvo", fields: [usuarioId], references: [id], onDelete: Cascade)
+  autor   Usuario @relation("CorretorAutor", fields: [autorId], references: [id])
+
+  @@index([empresaId, usuarioId, createdAt])
+}
+
+model ClienteTelefone {
+  id         Int                @id @default(autoincrement())
+  empresaId  Int
+  clienteId  Int
+  numero     String
+  tipo       TipoContatoCliente @default(CELULAR)
+  principal  Boolean            @default(false)
+  createdAt  DateTime           @default(now())
+
+  empresa Empresa @relation(fields: [empresaId], references: [id])
+  cliente Cliente @relation(fields: [clienteId], references: [id], onDelete: Cascade)
+
+  @@index([empresaId, clienteId])
+}
+
+model ClienteEmail {
+  id         Int                @id @default(autoincrement())
+  empresaId  Int
+  clienteId  Int
+  email      String
+  tipo       TipoContatoCliente @default(OUTRO)
+  principal  Boolean            @default(false)
+  createdAt  DateTime           @default(now())
+
+  empresa Empresa @relation(fields: [empresaId], references: [id])
+  cliente Cliente @relation(fields: [clienteId], references: [id], onDelete: Cascade)
+
+  @@index([empresaId, clienteId])
+}
+
+model ClienteEndereco {
+  id          Int                 @id @default(autoincrement())
+  empresaId   Int
+  clienteId   Int
+  tipo        TipoEnderecoCliente @default(RESIDENCIAL)
+  logradouro  String
+  numero      String?
+  complemento String?
+  bairro      String?
+  cidade      String
+  estado      String
+  cep         String?
+  principal   Boolean             @default(false)
+  createdAt   DateTime            @default(now())
+
+  empresa Empresa @relation(fields: [empresaId], references: [id])
+  cliente Cliente @relation(fields: [clienteId], references: [id], onDelete: Cascade)
+
+  @@index([empresaId, clienteId])
+}
+
+model ClienteAnotacao {
+  id         Int      @id @default(autoincrement())
+  empresaId  Int
+  clienteId  Int
+  usuarioId  Int
+  conteudo   String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  empresa Empresa @relation(fields: [empresaId], references: [id])
+  cliente Cliente @relation(fields: [clienteId], references: [id], onDelete: Cascade)
+  usuario Usuario @relation(fields: [usuarioId], references: [id])
+
+  @@index([empresaId, clienteId, createdAt])
+}
+
+model ClienteInteracao {
+  id         Int                   @id @default(autoincrement())
+  empresaId  Int
+  clienteId  Int
+  usuarioId  Int
+  imovelId   Int?
+  tipo       TipoInteracaoCliente
+  titulo     String
+  descricao  String?
+  dataHora   DateTime              @default(now())
+  createdAt  DateTime              @default(now())
+
+  empresa Empresa @relation(fields: [empresaId], references: [id])
+  cliente Cliente @relation(fields: [clienteId], references: [id], onDelete: Cascade)
+  usuario Usuario @relation(fields: [usuarioId], references: [id])
+  imovel  Imovel? @relation(fields: [imovelId], references: [id])
+
+  @@index([empresaId, clienteId, dataHora])
+}
+
+model ClienteHistorico {
+  id         Int                   @id @default(autoincrement())
+  empresaId  Int
+  clienteId  Int
+  usuarioId  Int
+  acao       AcaoHistoricoCliente
+  alteracoes Json?
+  createdAt  DateTime              @default(now())
+
+  empresa Empresa @relation(fields: [empresaId], references: [id])
+  cliente Cliente @relation(fields: [clienteId], references: [id], onDelete: Cascade)
+  usuario Usuario @relation(fields: [usuarioId], references: [id])
+
+  @@index([empresaId, clienteId, createdAt])
+}
+
+model ClienteDocumento {
+  id          Int                  @id @default(autoincrement())
+  empresaId   Int
+  clienteId   Int
+  tipo        TipoDocumentoCliente @default(OUTRO)
+  nome        String
+  nomeArquivo String
+  mimeType    String
+  tamanho     Int
+  url         String
+  createdAt   DateTime             @default(now())
+
+  empresa Empresa @relation(fields: [empresaId], references: [id])
+  cliente Cliente @relation(fields: [clienteId], references: [id], onDelete: Cascade)
+
+  @@index([empresaId, clienteId])
+}
+
+model ClienteFavorito {
+  id         Int      @id @default(autoincrement())
+  empresaId  Int
+  clienteId  Int
+  imovelId   Int
+  createdAt  DateTime @default(now())
+
+  empresa Empresa @relation(fields: [empresaId], references: [id])
+  cliente Cliente @relation(fields: [clienteId], references: [id], onDelete: Cascade)
+  imovel  Imovel  @relation(fields: [imovelId], references: [id], onDelete: Cascade)
+
+  @@unique([clienteId, imovelId])
+  @@index([empresaId, clienteId])
+}
+
+model ClienteVisita {
+  id           Int                 @id @default(autoincrement())
+  empresaId    Int
+  clienteId    Int
+  imovelId     Int
+  usuarioId    Int
+  dataHora     DateTime
+  status       StatusVisitaCliente @default(AGENDADA)
+  observacoes  String?
+  createdAt    DateTime            @default(now())
+  updatedAt    DateTime            @updatedAt
+
+  empresa Empresa @relation(fields: [empresaId], references: [id])
+  cliente Cliente @relation(fields: [clienteId], references: [id], onDelete: Cascade)
+  imovel  Imovel  @relation(fields: [imovelId], references: [id])
+  usuario Usuario @relation(fields: [usuarioId], references: [id])
+
+  @@index([empresaId, clienteId, dataHora])
+  @@index([empresaId, imovelId])
+}
+
+model ClienteProposta {
+  id          Int                   @id @default(autoincrement())
+  empresaId   Int
+  clienteId   Int
+  imovelId    Int
+  usuarioId   Int
+  valor       Float
+  status      StatusPropostaCliente @default(RASCUNHO)
+  observacoes String?
+  createdAt   DateTime              @default(now())
+  updatedAt   DateTime              @updatedAt
+
+  empresa Empresa @relation(fields: [empresaId], references: [id])
+  cliente Cliente @relation(fields: [clienteId], references: [id], onDelete: Cascade)
+  imovel  Imovel  @relation(fields: [imovelId], references: [id])
+  usuario Usuario @relation(fields: [usuarioId], references: [id])
+
+  @@index([empresaId, clienteId, createdAt])
+  @@index([empresaId, imovelId])
+}
+
+model ImovelFoto {
+  id          Int      @id @default(autoincrement())
+  empresaId   Int
+  imovelId    Int
+  url         String
+  nomeArquivo String
+  mimeType    String
+  tamanho     Int
+  ordem       Int      @default(0)
+  principal   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+
+  empresa Empresa @relation(fields: [empresaId], references: [id])
+  imovel  Imovel  @relation(fields: [imovelId], references: [id], onDelete: Cascade)
+
+  @@unique([imovelId, ordem])
+  @@index([empresaId, imovelId, ordem])
+}
+
+model ImovelHistorico {
+  id         Int                  @id @default(autoincrement())
+  empresaId  Int
+  imovelId   Int
+  usuarioId  Int
+  acao       AcaoHistoricoImovel
+  alteracoes Json?
+  createdAt  DateTime             @default(now())
+
+  empresa Empresa @relation(fields: [empresaId], references: [id])
+  imovel  Imovel  @relation(fields: [imovelId], references: [id], onDelete: Cascade)
+  usuario Usuario @relation(fields: [usuarioId], references: [id])
+
+  @@index([empresaId, imovelId, createdAt])
+}
+
+model ImovelChaveHistorico {
+  id           Int            @id @default(autoincrement())
+  empresaId    Int
+  imovelId     Int
+  usuarioId    Int
+  acao         AcaoChaveImovel
+  retiradoPor  String?
+  devolvidoPor String?
+  observacao   String?
+  ocorridoEm   DateTime       @default(now())
+  createdAt    DateTime       @default(now())
+
+  empresa Empresa @relation(fields: [empresaId], references: [id])
+  imovel  Imovel  @relation(fields: [imovelId], references: [id], onDelete: Cascade)
+  usuario Usuario @relation(fields: [usuarioId], references: [id])
+
+  @@index([empresaId, imovelId, ocorridoEm])
+}
+
+model Lead {
+  id                  Int        @id @default(autoincrement())
+  empresaId           Int
+  clienteId           Int?
+  imovelId            Int?
+  corretorId          Int?
+  etapaId             Int?
+  titulo              String
+  status              StatusLead @default(NOVO)
+  valor               Float?
+  valorPrevisto       Float?
+  probabilidade       Int        @default(10)
+  previsaoFechamento  DateTime?
+  motivoPerda         String?
+  origem              String?
+  notas               String?
+  ativo               Boolean    @default(true)
+  createdAt           DateTime   @default(now())
+  updatedAt           DateTime   @updatedAt
+
+  empresa     Empresa          @relation(fields: [empresaId], references: [id])
+  cliente     Cliente?         @relation(fields: [clienteId], references: [id])
+  imovel      Imovel?          @relation(fields: [imovelId], references: [id])
+  corretor    Usuario?         @relation("CorretorLead", fields: [corretorId], references: [id])
+  etapa       PipelineEtapa?   @relation(fields: [etapaId], references: [id])
+  tarefas     Tarefa[]
+  eventosAgenda EventoAgenda[]
+  historico   LeadHistorico[]
+  comentarios LeadComentario[]
+  anexos      LeadAnexo[]
+
+  @@index([empresaId, ativo, updatedAt])
+  @@index([empresaId, etapaId])
+  @@index([empresaId, status])
+  @@index([empresaId, corretorId])
+  @@index([empresaId, clienteId])
+  @@index([empresaId, imovelId])
+}
+
+model PipelineEtapa {
+  id                   Int               @id @default(autoincrement())
+  empresaId            Int
+  nome                 String
+  codigo               String
+  ordem                Int
+  cor                  String            @default("#2563eb")
+  tipo                 TipoEtapaPipeline @default(ABERTA)
+  probabilidadePadrao  Int               @default(10)
+  ativo                Boolean           @default(true)
+  createdAt            DateTime          @default(now())
+  updatedAt            DateTime          @updatedAt
+
+  empresa Empresa @relation(fields: [empresaId], references: [id])
+  leads   Lead[]
+
+  @@unique([empresaId, codigo])
+  @@index([empresaId, ordem])
+}
+
+model LeadHistorico {
+  id         Int               @id @default(autoincrement())
+  empresaId  Int
+  leadId     Int
+  usuarioId  Int
+  acao       AcaoHistoricoLead
+  alteracoes Json?
+  createdAt  DateTime          @default(now())
+
+  empresa Empresa @relation(fields: [empresaId], references: [id])
+  lead    Lead    @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  usuario Usuario @relation(fields: [usuarioId], references: [id])
+
+  @@index([empresaId, leadId, createdAt])
+  @@index([empresaId, createdAt])
+}
+
+model LeadComentario {
+  id         Int      @id @default(autoincrement())
+  empresaId  Int
+  leadId     Int
+  usuarioId  Int
+  conteudo   String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  empresa Empresa @relation(fields: [empresaId], references: [id])
+  lead    Lead    @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  usuario Usuario @relation(fields: [usuarioId], references: [id])
+
+  @@index([empresaId, leadId, createdAt])
+}
+
+model LeadAnexo {
+  id          Int      @id @default(autoincrement())
+  empresaId   Int
+  leadId      Int
+  nome        String
+  nomeArquivo String
+  mimeType    String
+  tamanho     Int
+  url         String
+  createdAt   DateTime @default(now())
+
+  empresa Empresa @relation(fields: [empresaId], references: [id])
+  lead    Lead    @relation(fields: [leadId], references: [id], onDelete: Cascade)
+
+  @@index([empresaId, leadId])
+}
+
+model Contrato {
+  id              Int            @id @default(autoincrement())
+  empresaId       Int
+  imovelId        Int
+  clienteId       Int
+  proprietarioId  Int?
+  corretorId      Int?
+  numero          String
+  tipo            TipoContrato
+  status          StatusContrato @default(RASCUNHO)
+  valor           Float
+  comissao        Float?
+  dataInicio      DateTime
+  dataFim         DateTime?
+  diaVencimento   Int?
+  observacoes     String?
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  empresa      Empresa   @relation(fields: [empresaId], references: [id])
+  imovel       Imovel    @relation(fields: [imovelId], references: [id])
+  cliente      Cliente   @relation("ClienteContrato", fields: [clienteId], references: [id])
+  proprietario Cliente?  @relation("ProprietarioContrato", fields: [proprietarioId], references: [id])
+  corretor     Usuario?  @relation("CorretorContrato", fields: [corretorId], references: [id])
+  cobrancas    Cobranca[]
+  lancamentos  LancamentoFinanceiro[]
+  comissoes    Comissao[]
+
+  @@unique([empresaId, numero])
+  @@index([empresaId, status])
+  @@index([empresaId, corretorId])
+  @@index([empresaId, imovelId])
+  @@index([empresaId, clienteId])
+}
+
+model Cobranca {
+  id             Int            @id @default(autoincrement())
+  empresaId      Int
+  contratoId     Int
+  descricao      String
+  valor          Float
+  vencimento     DateTime
+  pagamento      DateTime?
+  status         StatusCobranca @default(PENDENTE)
+  categoriaId    Int?
+  centroCustoId  Int?
+  formaPagamento FormaPagamentoFinanceiro?
+  lancamentoId   Int?           @unique
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  empresa     Empresa              @relation(fields: [empresaId], references: [id])
+  contrato    Contrato             @relation(fields: [contratoId], references: [id])
+  categoria   CategoriaFinanceira? @relation(fields: [categoriaId], references: [id])
+  centroCusto CentroCusto?         @relation(fields: [centroCustoId], references: [id])
+  lancamento  LancamentoFinanceiro? @relation(fields: [lancamentoId], references: [id])
+
+  @@index([empresaId, status, vencimento])
+  @@index([empresaId, contratoId])
+}
+
+model Tarefa {
+  id         Int              @id @default(autoincrement())
+  empresaId  Int
+  usuarioId  Int
+  leadId     Int?
+  clienteId  Int?
+  titulo     String
+  descricao  String?
+  dataLimite DateTime?
+  prioridade PrioridadeTarefa @default(MEDIA)
+  status     StatusTarefa     @default(PENDENTE)
+  createdAt  DateTime         @default(now())
+  updatedAt  DateTime         @updatedAt
+
+  empresa Empresa  @relation(fields: [empresaId], references: [id])
+  usuario Usuario  @relation(fields: [usuarioId], references: [id])
+  lead    Lead?    @relation(fields: [leadId], references: [id])
+  cliente Cliente? @relation(fields: [clienteId], references: [id])
+
+  @@index([empresaId, usuarioId, status])
+  @@index([empresaId, dataLimite])
+  @@index([empresaId, leadId])
+  @@index([empresaId, clienteId])
+}
+
+model EventoAgenda {
+  id               Int                      @id @default(autoincrement())
+  empresaId        Int
+  usuarioId        Int
+  criadoPorId      Int
+  clienteId        Int?
+  imovelId         Int?
+  leadId           Int?
+  eventoPaiId      Int?
+  titulo           String
+  descricao        String?
+  tipo             TipoEventoAgenda
+  status           StatusEventoAgenda       @default(AGENDADO)
+  dataInicio       DateTime
+  dataFim          DateTime
+  diaInteiro       Boolean                  @default(false)
+  localizacao      String?
+  repeticao        FrequenciaRepeticaoAgenda @default(NENHUMA)
+  repeticaoAte     DateTime?
+  lembreteMinutos  Int?
+  notificado       Boolean                  @default(false)
+  ativo            Boolean                  @default(true)
+  createdAt        DateTime                 @default(now())
+  updatedAt        DateTime                 @updatedAt
+
+  empresa     Empresa            @relation(fields: [empresaId], references: [id])
+  usuario     Usuario            @relation("ResponsavelEvento", fields: [usuarioId], references: [id])
+  criadoPor   Usuario            @relation("CriadorEvento", fields: [criadoPorId], references: [id])
+  cliente     Cliente?           @relation(fields: [clienteId], references: [id])
+  imovel      Imovel?            @relation(fields: [imovelId], references: [id])
+  lead        Lead?              @relation(fields: [leadId], references: [id])
+  eventoPai   EventoAgenda?      @relation("SerieEventos", fields: [eventoPaiId], references: [id])
+  ocorrencias EventoAgenda[]     @relation("SerieEventos")
+  historico   AgendaHistorico[]
+  notificacoes AgendaNotificacao[]
+
+  @@index([empresaId, dataInicio])
+  @@index([empresaId, usuarioId, dataInicio])
+  @@index([empresaId, status])
+  @@index([empresaId, tipo])
+  @@index([empresaId, ativo, dataInicio])
+  @@index([empresaId, clienteId])
+  @@index([empresaId, imovelId])
+  @@index([empresaId, leadId])
+}
+
+model AgendaHistorico {
+  id         Int                 @id @default(autoincrement())
+  empresaId  Int
+  eventoId   Int
+  usuarioId  Int
+  acao       AcaoHistoricoAgenda
+  alteracoes Json?
+  createdAt  DateTime            @default(now())
+
+  empresa Empresa      @relation(fields: [empresaId], references: [id])
+  evento  EventoAgenda @relation(fields: [eventoId], references: [id], onDelete: Cascade)
+  usuario Usuario      @relation(fields: [usuarioId], references: [id])
+
+  @@index([empresaId, eventoId, createdAt])
+  @@index([empresaId, createdAt])
+}
+
+model AgendaNotificacao {
+  id         Int      @id @default(autoincrement())
+  empresaId  Int
+  usuarioId  Int
+  eventoId   Int
+  titulo     String
+  mensagem   String
+  lida       Boolean  @default(false)
+  createdAt  DateTime @default(now())
+
+  empresa Empresa      @relation(fields: [empresaId], references: [id])
+  usuario Usuario      @relation(fields: [usuarioId], references: [id])
+  evento  EventoAgenda @relation(fields: [eventoId], references: [id], onDelete: Cascade)
+
+  @@index([empresaId, usuarioId, lida, createdAt])
+  @@index([empresaId, eventoId])
+}
+
+model CentroCusto {
+  id          Int      @id @default(autoincrement())
+  empresaId   Int
+  nome        String
+  codigo      String?
+  descricao   String?
+  ativo       Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  empresa     Empresa               @relation(fields: [empresaId], references: [id])
+  lancamentos LancamentoFinanceiro[]
+  cobrancas   Cobranca[]
+  comissoes   Comissao[]
+
+  @@unique([empresaId, codigo])
+  @@index([empresaId, ativo])
+}
+
+model CategoriaFinanceira {
+  id        Int                     @id @default(autoincrement())
+  empresaId Int
+  nome      String
+  tipo      TipoCategoriaFinanceira
+  codigo    String?
+  ativo     Boolean                 @default(true)
+  createdAt DateTime                @default(now())
+  updatedAt DateTime                @updatedAt
+
+  empresa     Empresa               @relation(fields: [empresaId], references: [id])
+  lancamentos LancamentoFinanceiro[]
+  cobrancas   Cobranca[]
+
+  @@unique([empresaId, codigo])
+  @@index([empresaId, tipo, ativo])
+}
+
+model LancamentoFinanceiro {
+  id             Int                        @id @default(autoincrement())
+  empresaId      Int
+  tipo           TipoLancamentoFinanceiro
+  descricao      String
+  valor          Float
+  valorPago      Float                      @default(0)
+  vencimento     DateTime
+  dataPagamento  DateTime?
+  status         StatusLancamentoFinanceiro @default(ABERTO)
+  formaPagamento FormaPagamentoFinanceiro?
+  categoriaId    Int?
+  centroCustoId  Int?
+  clienteId      Int?
+  contratoId     Int?
+  corretorId     Int?
+  competencia    DateTime?
+  observacoes    String?
+  conciliado     Boolean                    @default(false)
+  ativo          Boolean                    @default(true)
+  createdAt      DateTime                   @default(now())
+  updatedAt      DateTime                   @updatedAt
+
+  empresa      Empresa               @relation(fields: [empresaId], references: [id])
+  categoria    CategoriaFinanceira?  @relation(fields: [categoriaId], references: [id])
+  centroCusto  CentroCusto?          @relation(fields: [centroCustoId], references: [id])
+  cliente      Cliente?              @relation(fields: [clienteId], references: [id])
+  contrato     Contrato?             @relation(fields: [contratoId], references: [id])
+  corretor     Usuario?              @relation("CorretorLancamento", fields: [corretorId], references: [id])
+  cobranca     Cobranca?
+  movimentos   MovimentoCaixa[]
+  comissoes    Comissao[]
+  conciliacaoItens ConciliacaoItem[]
+
+  @@index([empresaId, tipo, status])
+  @@index([empresaId, vencimento])
+  @@index([empresaId, ativo, createdAt])
+  @@index([empresaId, clienteId])
+  @@index([empresaId, contratoId])
+  @@index([empresaId, corretorId])
+  @@index([empresaId, conciliado])
+}
+
+model Comissao {
+  id             Int            @id @default(autoincrement())
+  empresaId      Int
+  corretorId     Int
+  contratoId     Int?
+  lancamentoId   Int?
+  centroCustoId  Int?
+  descricao      String
+  valorBase      Float
+  percentual     Float
+  valor          Float
+  status         StatusComissao @default(PREVISTA)
+  competencia    DateTime
+  dataPagamento  DateTime?
+  observacoes    String?
+  ativo          Boolean        @default(true)
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  empresa     Empresa      @relation(fields: [empresaId], references: [id])
+  corretor    Usuario      @relation("CorretorComissao", fields: [corretorId], references: [id])
+  contrato    Contrato?    @relation(fields: [contratoId], references: [id])
+  lancamento  LancamentoFinanceiro? @relation(fields: [lancamentoId], references: [id])
+  centroCusto CentroCusto? @relation(fields: [centroCustoId], references: [id])
+  movimentos  MovimentoCaixa[]
+
+  @@index([empresaId, status, competencia])
+  @@index([empresaId, corretorId])
+  @@index([empresaId, contratoId])
+}
+
+model CaixaDiario {
+  id            Int               @id @default(autoincrement())
+  empresaId     Int
+  data          DateTime
+  saldoInicial  Float             @default(0)
+  saldoFinal    Float?
+  status        StatusCaixaDiario @default(ABERTO)
+  observacoes   String?
+  fechadoPorId  Int?
+  fechadoEm     DateTime?
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+
+  empresa    Empresa         @relation(fields: [empresaId], references: [id])
+  fechadoPor Usuario?        @relation("CaixaFechadoPor", fields: [fechadoPorId], references: [id])
+  movimentos MovimentoCaixa[]
+
+  @@unique([empresaId, data])
+  @@index([empresaId, status, data])
+}
+
+model MovimentoCaixa {
+  id             Int                      @id @default(autoincrement())
+  empresaId      Int
+  caixaDiarioId  Int
+  tipo           TipoMovimentoCaixa
+  descricao      String
+  valor          Float
+  formaPagamento FormaPagamentoFinanceiro?
+  lancamentoId   Int?
+  comissaoId     Int?
+  createdAt      DateTime                 @default(now())
+
+  empresa     Empresa               @relation(fields: [empresaId], references: [id])
+  caixaDiario CaixaDiario           @relation(fields: [caixaDiarioId], references: [id], onDelete: Cascade)
+  lancamento  LancamentoFinanceiro? @relation(fields: [lancamentoId], references: [id])
+  comissao    Comissao?             @relation(fields: [comissaoId], references: [id])
+  conciliacaoItens ConciliacaoItem[]
+
+  @@index([empresaId, caixaDiarioId])
+  @@index([empresaId, createdAt])
+}
+
+model Conciliacao {
+  id             Int               @id @default(autoincrement())
+  empresaId      Int
+  titulo         String
+  periodoInicio  DateTime
+  periodoFim     DateTime
+  status         StatusConciliacao @default(ABERTA)
+  saldoExtrato   Float?
+  saldoSistema   Float?
+  observacoes    String?
+  criadoPorId    Int
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+
+  empresa   Empresa           @relation(fields: [empresaId], references: [id])
+  criadoPor Usuario           @relation("ConciliacaoCriador", fields: [criadoPorId], references: [id])
+  itens     ConciliacaoItem[]
+
+  @@index([empresaId, status, periodoInicio])
+}
+
+model ConciliacaoItem {
+  id               Int      @id @default(autoincrement())
+  empresaId        Int
+  conciliacaoId    Int
+  lancamentoId     Int?
+  movimentoCaixaId Int?
+  descricao        String
+  valor            Float
+  dataReferencia   DateTime?
+  conciliado       Boolean  @default(false)
+  createdAt        DateTime @default(now())
+
+  empresa        Empresa               @relation(fields: [empresaId], references: [id])
+  conciliacao    Conciliacao           @relation(fields: [conciliacaoId], references: [id], onDelete: Cascade)
+  lancamento     LancamentoFinanceiro? @relation(fields: [lancamentoId], references: [id])
+  movimentoCaixa MovimentoCaixa?       @relation(fields: [movimentoCaixaId], references: [id])
+
+  @@index([empresaId, conciliacaoId])
+}

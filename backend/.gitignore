@@ -1,0 +1,9 @@
+node_modules
+# Keep environment variables out of version control
+.env
+
+/generated/prisma
+
+# Uploads de imagens (arquivos no disco)
+/uploads/properties/**
+!/uploads/properties/.gitkeep

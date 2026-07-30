@@ -1,0 +1,100 @@
+.sussai-agenda-calendar {
+  --fc-border-color: rgba(148, 163, 184, 0.22);
+  --fc-page-bg-color: transparent;
+  --fc-neutral-bg-color: rgba(37, 99, 235, 0.04);
+  --fc-today-bg-color: rgba(37, 99, 235, 0.08);
+  --fc-event-border-color: transparent;
+  --fc-button-bg-color: #2563eb;
+  --fc-button-border-color: #2563eb;
+  --fc-button-hover-bg-color: #1d4ed8;
+  --fc-button-hover-border-color: #1d4ed8;
+  --fc-button-active-bg-color: #1e40af;
+  --fc-button-active-border-color: #1e40af;
+  --fc-now-indicator-color: #2563eb;
+  font-family: inherit;
+}
+
+.sussai-agenda-calendar .fc {
+  border: none;
+}
+
+.sussai-agenda-calendar .fc-toolbar {
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 1.25rem !important;
+}
+
+.sussai-agenda-calendar .fc-toolbar-title {
+  font-size: 1.35rem;
+  font-weight: 850;
+  letter-spacing: -0.03em;
+}
+
+.sussai-agenda-calendar .fc-button {
+  text-transform: none !important;
+  font-weight: 700 !important;
+  border-radius: 10px !important;
+  box-shadow: none !important;
+  padding: 0.45rem 0.9rem !important;
+}
+
+.sussai-agenda-calendar .fc-button-primary:not(:disabled).fc-button-active,
+.sussai-agenda-calendar .fc-button-primary:not(:disabled):active {
+  background: #1e40af;
+}
+
+.sussai-agenda-calendar .fc-col-header-cell-cushion,
+.sussai-agenda-calendar .fc-daygrid-day-number {
+  font-weight: 700;
+  color: inherit;
+  text-decoration: none !important;
+  padding: 8px;
+}
+
+.sussai-agenda-calendar .fc-daygrid-day,
+.sussai-agenda-calendar .fc-timegrid-slot {
+  transition: background-color 160ms ease;
+}
+
+.sussai-agenda-calendar .fc-event {
+  border-radius: 8px !important;
+  padding: 2px 4px;
+  font-weight: 700;
+  font-size: 0.78rem;
+  box-shadow: 0 6px 16px rgba(15, 23, 42, 0.12);
+  border: none !important;
+  cursor: pointer;
+}
+
+.sussai-agenda-calendar .fc-event:hover {
+  filter: brightness(1.05);
+  transform: translateY(-1px);
+}
+
+.sussai-agenda-calendar .fc-timegrid-event {
+  border-radius: 10px !important;
+}
+
+.sussai-agenda-calendar .fc-list-event:hover td {
+  background: rgba(37, 99, 235, 0.06);
+}
+
+.sussai-agenda-calendar .fc-scrollgrid,
+.sussai-agenda-calendar .fc-scrollgrid-section > * {
+  border-radius: 14px;
+}
+
+.sussai-agenda-calendar .fc-theme-standard td,
+.sussai-agenda-calendar .fc-theme-standard th {
+  border-color: var(--fc-border-color);
+}
+
+@media (max-width: 900px) {
+  .sussai-agenda-calendar .fc-toolbar-title {
+    font-size: 1.1rem;
+  }
+
+  .sussai-agenda-calendar .fc-toolbar {
+    justify-content: center;
+  }
+}

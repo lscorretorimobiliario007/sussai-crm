@@ -1,0 +1,222 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserProfile {
+  ADMIN
+  GERENTE
+  CORRETOR
+}
+
+enum FinalidadeImovel {
+  VENDA
+  LOCACAO
+}
+
+enum TipoImovel {
+  CASA
+  APARTAMENTO
+  TERRENO
+  COMERCIAL
+}
+
+enum LeadOrigem {
+  SITE
+  ZAP
+  VIVA_REAL
+  IMOVELWEB
+  OLX
+  MERCADO_LIVRE
+  FACEBOOK
+  INSTAGRAM
+  GOOGLE
+  MANUAL
+  OUTRO
+}
+
+enum LeadStatus {
+  NOVO
+  PRIMEIRO_CONTATO
+  VISITA_AGENDADA
+  PROPOSTA
+  NEGOCIACAO
+  FECHADO
+  PERDIDO
+}
+
+model Empresa {
+  id       Int     @id @default(autoincrement())
+  nome     String
+  cnpj     String  @unique
+  email    String?
+  telefone String?
+
+  usuarios       Usuario[]
+  properties     Property[]
+  leads          Lead[]
+  pipelineStages PipelineStage[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Usuario {
+  id     Int         @id @default(autoincrement())
+  nome   String
+  email  String      @unique
+  senha  String
+  perfil UserProfile @default(CORRETOR)
+  ativo  Boolean     @default(true)
+
+  empresaId Int
+  empresa   Empresa @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+  leadsAssigned Lead[] @relation("LeadAssignedUser")
+  leadHistories LeadHistory[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([empresaId])
+  @@index([email, ativo])
+}
+
+model Property {
+  id             Int              @id @default(autoincrement())
+  codigo         String
+  titulo         String
+  descricao      String?
+  finalidade     FinalidadeImovel
+  tipo           TipoImovel
+  valorVenda     Float?
+  valorLocacao   Float?
+  endereco       String
+  numero         String?
+  bairro         String
+  cidade         String
+  estado         String           @db.Char(2)
+  cep            String?
+  quartos        Int              @default(0)
+  banheiros      Int              @default(0)
+  suites         Int              @default(0)
+  vagas          Int              @default(0)
+  areaTerreno    Float?
+  areaConstruida Float?
+  destaque       Boolean          @default(false)
+  publicado      Boolean          @default(true)
+  ativo          Boolean          @default(true)
+  slug           String?
+  empresaId      Int
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+
+  empresa Empresa @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+  images  PropertyImage[]
+  leads   Lead[]
+
+  @@unique([empresaId, codigo])
+  @@unique([empresaId, slug])
+  @@index([empresaId, ativo])
+  @@index([empresaId, cidade])
+  @@index([empresaId, bairro])
+  @@index([empresaId, tipo])
+  @@index([empresaId, finalidade])
+  @@index([empresaId, publicado, ativo])
+  @@index([empresaId, destaque, createdAt])
+  @@map("properties")
+}
+
+model PropertyImage {
+  id         Int      @id @default(autoincrement())
+  propertyId Int
+  fileName   String
+  filePath   String
+  mimeType   String
+  size       Int
+  order      Int      @default(0)
+  isCover    Boolean  @default(false)
+  createdAt  DateTime @default(now())
+
+  property Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  @@index([propertyId, order])
+  @@index([propertyId, isCover])
+  @@map("property_images")
+}
+
+model PipelineStage {
+  id        Int      @id @default(autoincrement())
+  empresaId Int
+  nome      String
+  ordem     Int
+  cor       String   @default("#6366f1")
+  ativo     Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  empresa          Empresa       @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+  leads            Lead[]
+  historiesFrom    LeadHistory[] @relation("StageAnterior")
+  historiesTo      LeadHistory[] @relation("StageNovo")
+
+  @@unique([empresaId, ordem])
+  @@index([empresaId, ativo, ordem])
+  @@map("pipeline_stages")
+}
+
+model Lead {
+  id              Int         @id @default(autoincrement())
+  empresaId       Int
+  propertyId      Int?
+  assignedUserId  Int?
+  stageId         Int?
+  nome            String
+  email           String?
+  telefone        String?
+  whatsapp        String?
+  origem          LeadOrigem  @default(MANUAL)
+  status          LeadStatus  @default(NOVO)
+  mensagem        String?
+  observacoes     String?
+  ultimoContatoEm DateTime?
+  ativo           Boolean     @default(true)
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  empresa      Empresa        @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+  property     Property?      @relation(fields: [propertyId], references: [id], onDelete: SetNull)
+  assignedUser Usuario?       @relation("LeadAssignedUser", fields: [assignedUserId], references: [id], onDelete: SetNull)
+  stage        PipelineStage? @relation(fields: [stageId], references: [id], onDelete: SetNull)
+  histories    LeadHistory[]
+
+  @@index([empresaId, ativo, createdAt])
+  @@index([empresaId, status])
+  @@index([empresaId, origem])
+  @@index([empresaId, assignedUserId])
+  @@index([empresaId, propertyId])
+  @@index([empresaId, stageId])
+  @@map("leads")
+}
+
+model LeadHistory {
+  id              Int      @id @default(autoincrement())
+  leadId          Int
+  userId          Int
+  stageIdAnterior Int?
+  stageIdNovo     Int
+  observacao      String?
+  createdAt       DateTime @default(now())
+
+  lead            Lead           @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  user            Usuario        @relation(fields: [userId], references: [id], onDelete: Restrict)
+  stageAnterior   PipelineStage? @relation("StageAnterior", fields: [stageIdAnterior], references: [id], onDelete: SetNull)
+  stageNovo       PipelineStage  @relation("StageNovo", fields: [stageIdNovo], references: [id], onDelete: Restrict)
+
+  @@index([leadId, createdAt])
+  @@index([userId])
+  @@map("lead_histories")
+}
