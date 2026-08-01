@@ -46,8 +46,10 @@ import {
   TIPOS_ENDERECO,
   TIPOS_INTERACAO,
   TIPOS_PESSOA,
+  formatCpfCnpj,
+  formatPhone,
   optionLabel,
-  statusMeta,
+  crmStatusMeta,
 } from "../utils/clientes";
 
 function downloadBlob(blob, filename) {
@@ -258,7 +260,7 @@ export default function ClienteDetalhes() {
     return <MainLayout title="Cliente"><Loading variant="skeleton" rows={8} /></MainLayout>;
   }
 
-  const status = statusMeta(client.status);
+  const status = crmStatusMeta(client.status);
   const active = client.ativo !== false;
 
   return (
@@ -323,10 +325,10 @@ export default function ClienteDetalhes() {
               <Card>
                 <SectionTitle>Perfil comercial</SectionTitle>
                 <Grid container spacing={2}>
-                  <Grid size={{ xs: 12, sm: 6 }}><Typography variant="caption" color="text.secondary">Documento</Typography><Typography fontWeight={750}>{client.cpfCnpj || "—"}</Typography></Grid>
+                  <Grid size={{ xs: 12, sm: 6 }}><Typography variant="caption" color="text.secondary">Documento</Typography><Typography fontWeight={750}>{formatCpfCnpj(client.cpfCnpj) || "—"}</Typography></Grid>
                   <Grid size={{ xs: 12, sm: 6 }}><Typography variant="caption" color="text.secondary">E-mail</Typography><Typography fontWeight={750}>{client.email || "—"}</Typography></Grid>
-                  <Grid size={{ xs: 12, sm: 6 }}><Typography variant="caption" color="text.secondary">Telefone</Typography><Typography fontWeight={750}>{client.telefone || "—"}</Typography></Grid>
-                  <Grid size={{ xs: 12, sm: 6 }}><Typography variant="caption" color="text.secondary">WhatsApp</Typography><Typography fontWeight={750}>{client.whatsapp || "—"}</Typography></Grid>
+                  <Grid size={{ xs: 12, sm: 6 }}><Typography variant="caption" color="text.secondary">Telefone</Typography><Typography fontWeight={750}>{formatPhone(client.telefone) || "—"}</Typography></Grid>
+                  <Grid size={{ xs: 12, sm: 6 }}><Typography variant="caption" color="text.secondary">WhatsApp</Typography><Typography fontWeight={750}>{formatPhone(client.whatsapp) || "—"}</Typography></Grid>
                   <Grid size={{ xs: 12, sm: 6 }}><Typography variant="caption" color="text.secondary">Cidade</Typography><Typography fontWeight={750}>{[client.cidade, client.estado].filter(Boolean).join(" / ") || "—"}</Typography></Grid>
                   <Grid size={{ xs: 12, sm: 6 }}><Typography variant="caption" color="text.secondary">Faixa de preço</Typography><Typography fontWeight={750}>{formatCurrency(client.faixaPrecoMin)} – {formatCurrency(client.faixaPrecoMax)}</Typography></Grid>
                   {client.razaoSocial && <Grid size={{ xs: 12, sm: 6 }}><Typography variant="caption" color="text.secondary">Razão social</Typography><Typography fontWeight={750}>{client.razaoSocial}</Typography></Grid>}
@@ -355,7 +357,7 @@ export default function ClienteDetalhes() {
                     {(client.telefones || []).length === 0 && <Typography color="text.secondary">Nenhum telefone</Typography>}
                     {(client.telefones || []).map((item) => (
                       <Typography key={item.id} sx={{ mb: 0.75 }}>
-                        {item.numero} · {optionLabel(TIPOS_CONTATO, item.tipo)}{item.principal ? " · principal" : ""}
+                        {formatPhone(item.numero)} · {optionLabel(TIPOS_CONTATO, item.tipo)}{item.principal ? " · principal" : ""}
                       </Typography>
                     ))}
                   </Grid>
@@ -389,6 +391,9 @@ export default function ClienteDetalhes() {
                       <Button variant="contained" startIcon={<NoteAddOutlined />} loading={busy} onClick={addNote}>Salvar</Button>
                     </Stack>
                     <Stack spacing={1.5}>
+                      {(client.anotacoes || []).length === 0 && (
+                        <Typography color="text.secondary">Nenhuma anotação registrada.</Typography>
+                      )}
                       {(client.anotacoes || []).map((item) => (
                         <Box key={item.id} sx={{ p: 1.5, borderRadius: 2, bgcolor: "action.hover" }}>
                           <Typography sx={{ whiteSpace: "pre-wrap" }}>{item.conteudo}</Typography>
@@ -410,6 +415,9 @@ export default function ClienteDetalhes() {
                       <Grid size={{ xs: 12 }}><Button variant="contained" loading={busy} onClick={addInteraction}>Registrar interação</Button></Grid>
                     </Grid>
                     <Stack spacing={1.5}>
+                      {(client.interacoes || []).length === 0 && (
+                        <Typography color="text.secondary">Nenhuma interação registrada.</Typography>
+                      )}
                       {(client.interacoes || []).map((item) => (
                         <Box key={item.id} sx={{ p: 1.5, borderLeft: 3, borderColor: "primary.main", pl: 2 }}>
                           <Typography fontWeight={800}>{item.titulo} · {optionLabel(TIPOS_INTERACAO, item.tipo)}</Typography>
@@ -564,6 +572,9 @@ export default function ClienteDetalhes() {
                   </Stack>
                 </SectionTitle>
                 <Stack spacing={1.5}>
+                  {history.length === 0 && (
+                    <Typography color="text.secondary">Nenhum evento no histórico.</Typography>
+                  )}
                   {history.map((item) => (
                     <Box key={item.id}>
                       <Typography fontWeight={750}>{HISTORY_LABELS[item.acao] || item.acao}</Typography>

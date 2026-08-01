@@ -38,11 +38,12 @@ import { formatCurrency } from "../utils/formatters";
 import {
   INTERESSES_CLIENTE,
   ORDENACOES_CLIENTE,
-  STATUS_CLIENTE,
+  STATUS_CLIENTE_CRM,
   TIPOS_CLIENTE,
   TIPOS_PESSOA,
+  formatPhone,
   optionLabel,
-  statusMeta,
+  crmStatusMeta,
 } from "../utils/clientes";
 
 const initialFilters = {
@@ -273,7 +274,7 @@ export default function Clientes() {
                 <Select size="small" label="Pessoa" value={filters.tipoPessoa} options={[{ value: "", label: "Todas" }, ...TIPOS_PESSOA]} onChange={(event) => updateFilter("tipoPessoa", event.target.value)} />
               </Grid>
               <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-                <Select size="small" label="Status" value={filters.status} options={[{ value: "", label: "Todos" }, ...STATUS_CLIENTE]} onChange={(event) => updateFilter("status", event.target.value)} />
+                <Select size="small" label="Status" value={filters.status} options={[{ value: "", label: "Todos" }, ...STATUS_CLIENTE_CRM]} onChange={(event) => updateFilter("status", event.target.value)} />
               </Grid>
               <Grid size={{ xs: 12, sm: 6, md: 3 }}>
                 <Select size="small" label="Interesse" value={filters.interesse} options={[{ value: "", label: "Todos" }, ...INTERESSES_CLIENTE]} onChange={(event) => updateFilter("interesse", event.target.value)} />
@@ -309,7 +310,7 @@ export default function Clientes() {
         ) : (
           <Grid container spacing={2.5}>
             {clients.map((client) => {
-              const status = statusMeta(client.status);
+              const status = crmStatusMeta(client.status);
               const phone = client.telefones?.[0]?.numero || client.telefone || client.whatsapp;
               const email = client.emails?.[0]?.email || client.email;
               return (
@@ -339,7 +340,7 @@ export default function Clientes() {
                         </Stack>
                         <Typography variant="h6" fontWeight={850} noWrap>{client.nome}</Typography>
                         <Typography color="text.secondary" variant="body2" noWrap>
-                          {email || "Sem e-mail"} · {phone || "Sem telefone"}
+                          {email || "Sem e-mail"} · {formatPhone(phone) || "Sem telefone"}
                         </Typography>
                         <Typography color="text.secondary" variant="body2" sx={{ mt: 0.5 }} noWrap>
                           {[client.cidade, client.estado].filter(Boolean).join(" — ") || "Sem cidade"}

@@ -1,5 +1,5 @@
 export const TIPOS_CLIENTE = [
-  { value: "INQUILINO", label: "Inquilino" },
+  { value: "INQUILINO", label: "Locatário" },
   { value: "COMPRADOR", label: "Comprador" },
   { value: "LEAD", label: "Lead" },
 ];
@@ -19,6 +19,15 @@ export const STATUS_CLIENTE = [
   { value: "QUALIFICADO", label: "Qualificado", color: "info" },
   { value: "NEGOCIACAO", label: "Negociação", color: "warning" },
   { value: "CLIENTE", label: "Cliente", color: "success" },
+  { value: "INATIVO", label: "Inativo", color: "default" },
+  { value: "PERDIDO", label: "Perdido", color: "error" },
+];
+
+export const STATUS_CLIENTE_CRM = [
+  { value: "PROSPECTO", label: "Novo", color: "default" },
+  { value: "QUALIFICADO", label: "Em atendimento", color: "info" },
+  { value: "NEGOCIACAO", label: "Negociação", color: "warning" },
+  { value: "CLIENTE", label: "Fechado", color: "success" },
   { value: "INATIVO", label: "Inativo", color: "default" },
   { value: "PERDIDO", label: "Perdido", color: "error" },
 ];
@@ -108,4 +117,35 @@ export function optionLabel(options, value) {
 
 export function statusMeta(value) {
   return STATUS_CLIENTE.find((item) => item.value === value) || { label: value, color: "default" };
+}
+
+export function crmStatusMeta(value) {
+  return STATUS_CLIENTE_CRM.find((item) => item.value === value) || { label: value, color: "default" };
+}
+
+export function formatCpfCnpj(value) {
+  const digits = String(value || "").replace(/\D/g, "").slice(0, 14);
+  if (digits.length <= 11) {
+    return digits
+      .replace(/^(\d{3})(\d)/, "$1.$2")
+      .replace(/^(\d{3})\.(\d{3})(\d)/, "$1.$2.$3")
+      .replace(/\.(\d{3})(\d)/, ".$1-$2");
+  }
+  return digits
+    .replace(/^(\d{2})(\d)/, "$1.$2")
+    .replace(/^(\d{2})\.(\d{3})(\d)/, "$1.$2.$3")
+    .replace(/\.(\d{3})(\d)/, ".$1/$2")
+    .replace(/(\d{4})(\d)/, "$1-$2");
+}
+
+export function formatPhone(value) {
+  const digits = String(value || "").replace(/\D/g, "").slice(0, 11);
+  if (digits.length <= 10) {
+    return digits
+      .replace(/^(\d{2})(\d)/, "($1) $2")
+      .replace(/(\d{4})(\d)/, "$1-$2");
+  }
+  return digits
+    .replace(/^(\d{2})(\d)/, "($1) $2")
+    .replace(/(\d{5})(\d)/, "$1-$2");
 }

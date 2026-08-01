@@ -1,16 +1,17 @@
 import PropertyImages from "../components/property/PropertyImages";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import {
   Box,
+  CircularProgress,
   Grid,
+  InputAdornment,
   MenuItem,
   Paper,
   Stack,
   Switch,
   FormControlLabel,
   Typography,
-  CircularProgress,
 } from "@mui/material";
 
 import MainLayout from "../components/layout/MainLayout";
@@ -18,6 +19,7 @@ import Button from "../components/ui/Button";
 import Input from "../components/ui/Input";
 import { useToast } from "../components/ui/Toast";
 import api from "../api/axios";
+import { buscarCep, formatCep } from "../utils/cep";
 
 const FINALIDADES = [
   { value: "VENDA", label: "Venda" },
@@ -33,6 +35,51 @@ const TIPOS = [
   { value: "SOBRADO", label: "Sobrado (indisponível)", disabled: true },
   { value: "CHACARA", label: "Chácara (indisponível)", disabled: true },
 ];
+
+const currencyFormatter = new Intl.NumberFormat("pt-BR", {
+  style: "currency",
+  currency: "BRL",
+});
+
+function formatCurrencyInput(value) {
+  const digits = String(value ?? "").replace(/\D/g, "");
+  if (!digits) return "";
+  return currencyFormatter.format(Number(digits) / 100);
+}
+
+function formatCurrencyFromNumber(value) {
+  if (value === null || value === undefined || value === "") return "";
+  return currencyFormatter.format(Number(value));
+}
+
+function parseCurrency(value) {
+  const digits = String(value ?? "").replace(/\D/g, "");
+  return digits ? Number(digits) / 100 : null;
+}
+
+function formatAreaInput(value) {
+  const normalized = String(value ?? "")
+    .replace(".", ",")
+    .replace(/[^\d,]/g, "");
+  const [integer = "", ...decimalParts] = normalized.split(",");
+  const decimals = decimalParts.join("").slice(0, 2);
+  return decimalParts.length > 0 ? `${integer},${decimals}` : integer;
+}
+
+function formatAreaFromNumber(value) {
+  if (value === null || value === undefined || value === "") return "";
+  return String(value).replace(".", ",");
+}
+
+function parseArea(value) {
+  if (!String(value ?? "").trim()) return null;
+  const parsed = Number(String(value).replace(",", "."));
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
+function formatStateInput(value) {
+  return String(value ?? "").replace(/[^a-z]/gi, "").slice(0, 2).toUpperCase();
+}
 
 const initialState = {
   titulo: "",
@@ -73,6 +120,9 @@ export default function ImovelForm() {
   const [loading, setLoading] = useState(editando);
 
   const [saving, setSaving] = useState(false);
+  const [cepLoading, setCepLoading] = useState(false);
+  const [errors, setErrors] = useState({});
+  const cepRequestRef = useRef(0);
 
   const [form, setForm] = useState(initialState);
 
@@ -86,6 +136,70 @@ export default function ImovelForm() {
       ...old,
       [campo]: value,
     }));
+    setErrors((current) => ({ ...current, [campo]: undefined }));
+  };
+
+  const handleMaskedChange = (campo, formatter) => (event) => {
+    const value = formatter(event.target.value);
+    setForm((old) => ({ ...old, [campo]: value }));
+    setErrors((current) => ({ ...current, [campo]: undefined }));
+  };
+
+  const consultarCep = async (digits) => {
+    const requestId = ++cepRequestRef.current;
+    setCepLoading(true);
+    setErrors((current) => ({ ...current, cep: undefined }));
+
+    try {
+      const data = await buscarCep(digits);
+      if (requestId !== cepRequestRef.current) return;
+
+      if (!data) {
+        setErrors((current) => ({ ...current, cep: "CEP não encontrado." }));
+        toast.error("CEP não encontrado. Confira os números e tente novamente.");
+        return;
+      }
+
+      setForm((current) => ({
+        ...current,
+        cep: formatCep(data.cep),
+        endereco: data.endereco || current.endereco,
+        bairro: data.bairro || current.bairro,
+        cidade: data.cidade || current.cidade,
+        estado: data.estado || current.estado,
+      }));
+      setErrors((current) => ({
+        ...current,
+        cep: undefined,
+        endereco: undefined,
+        bairro: undefined,
+        cidade: undefined,
+        estado: undefined,
+      }));
+    } catch {
+      if (requestId !== cepRequestRef.current) return;
+      setErrors((current) => ({
+        ...current,
+        cep: "Não foi possível consultar o CEP.",
+      }));
+      toast.error("Não foi possível consultar o CEP. Preencha o endereço manualmente.");
+    } finally {
+      if (requestId === cepRequestRef.current) setCepLoading(false);
+    }
+  };
+
+  const handleCepChange = (event) => {
+    const value = formatCep(event.target.value);
+    const digits = value.replace(/\D/g, "");
+    setForm((old) => ({ ...old, cep: value }));
+    setErrors((current) => ({ ...current, cep: undefined }));
+
+    if (digits.length === 8) {
+      consultarCep(digits);
+    } else {
+      cepRequestRef.current += 1;
+      setCepLoading(false);
+    }
   };
 
   const carregarImovel = useCallback(async () => {
@@ -101,23 +215,23 @@ export default function ImovelForm() {
         finalidade: data.finalidade,
         tipo: data.tipo,
 
-        valorVenda: data.valorVenda ?? "",
-        valorLocacao: data.valorLocacao ?? "",
+        valorVenda: formatCurrencyFromNumber(data.valorVenda),
+        valorLocacao: formatCurrencyFromNumber(data.valorLocacao),
 
         endereco: data.endereco ?? "",
         numero: data.numero ?? "",
         bairro: data.bairro ?? "",
         cidade: data.cidade ?? "",
         estado: data.estado ?? "",
-        cep: data.cep ?? "",
+        cep: formatCep(data.cep ?? ""),
 
         quartos: data.quartos ?? "",
         banheiros: data.banheiros ?? "",
         suites: data.suites ?? "",
         vagas: data.vagas ?? "",
 
-        areaTerreno: data.areaTerreno ?? "",
-        areaConstruida: data.areaConstruida ?? "",
+        areaTerreno: formatAreaFromNumber(data.areaTerreno),
+        areaConstruida: formatAreaFromNumber(data.areaConstruida),
 
         destaque: Boolean(data.destaque),
         publicado: Boolean(data.publicado),
@@ -145,12 +259,12 @@ export default function ImovelForm() {
 
       valorVenda:
         form.finalidade === "VENDA"
-          ? Number(form.valorVenda)
+          ? parseCurrency(form.valorVenda)
           : null,
 
       valorLocacao:
         form.finalidade === "LOCACAO"
-          ? Number(form.valorLocacao)
+          ? parseCurrency(form.valorLocacao)
           : null,
 
       endereco: form.endereco,
@@ -160,7 +274,7 @@ export default function ImovelForm() {
       cidade: form.cidade,
       estado: form.estado,
 
-      cep: form.cep,
+      cep: form.cep.replace(/\D/g, "") || null,
 
       quartos: form.quartos ? Number(form.quartos) : null,
       banheiros: form.banheiros ? Number(form.banheiros) : null,
@@ -168,11 +282,11 @@ export default function ImovelForm() {
       vagas: form.vagas ? Number(form.vagas) : null,
 
       areaTerreno: form.areaTerreno
-        ? Number(form.areaTerreno)
+        ? parseArea(form.areaTerreno)
         : null,
 
       areaConstruida: form.areaConstruida
-        ? Number(form.areaConstruida)
+        ? parseArea(form.areaConstruida)
         : null,
 
       destaque: form.destaque,
@@ -180,7 +294,48 @@ export default function ImovelForm() {
     };
   }
 
+  function validarFormulario() {
+    const nextErrors = {};
+    const requiredFields = {
+      titulo: "Informe o título.",
+      endereco: "Informe a rua.",
+      bairro: "Informe o bairro.",
+      cidade: "Informe a cidade.",
+      estado: "Informe o estado.",
+    };
+
+    Object.entries(requiredFields).forEach(([field, message]) => {
+      if (!String(form[field] ?? "").trim()) nextErrors[field] = message;
+    });
+
+    if (form.estado.trim().length !== 2) {
+      nextErrors.estado = "Informe a UF com 2 letras.";
+    }
+
+    const cepDigits = form.cep.replace(/\D/g, "");
+    if (form.cep && cepDigits.length !== 8) {
+      nextErrors.cep = "Informe um CEP com 8 números.";
+    }
+
+    const valueField = form.finalidade === "VENDA" ? "valorVenda" : "valorLocacao";
+    if (!(parseCurrency(form[valueField]) > 0)) {
+      nextErrors[valueField] =
+        form.finalidade === "VENDA"
+          ? "Informe o valor de venda."
+          : "Informe o valor de locação.";
+    }
+
+    setErrors(nextErrors);
+    if (Object.keys(nextErrors).length > 0) {
+      toast.error("Revise os campos obrigatórios destacados.");
+      return false;
+    }
+    return true;
+  }
+
  async function salvar() {
+  if (!validarFormulario()) return;
+
   try {
     setSaving(true);
 
@@ -246,6 +401,8 @@ navigate(`/imoveis/${data.id}`);
               value={form.titulo}
               onChange={handleChange("titulo")}
               required
+              error={Boolean(errors.titulo)}
+              helperText={errors.titulo}
               fullWidth
             />
           </Grid>
@@ -296,10 +453,13 @@ navigate(`/imoveis/${data.id}`);
           {form.finalidade === "VENDA" && (
             <Grid item xs={12} md={6}>
               <Input
-                type="number"
                 label="Valor de Venda"
                 value={form.valorVenda}
-                onChange={handleChange("valorVenda")}
+                onChange={handleMaskedChange("valorVenda", formatCurrencyInput)}
+                inputProps={{ inputMode: "numeric" }}
+                required
+                error={Boolean(errors.valorVenda)}
+                helperText={errors.valorVenda}
                 fullWidth
               />
             </Grid>
@@ -308,10 +468,13 @@ navigate(`/imoveis/${data.id}`);
           {form.finalidade === "LOCACAO" && (
             <Grid item xs={12} md={6}>
               <Input
-                type="number"
                 label="Valor da Locação"
                 value={form.valorLocacao}
-                onChange={handleChange("valorLocacao")}
+                onChange={handleMaskedChange("valorLocacao", formatCurrencyInput)}
+                inputProps={{ inputMode: "numeric" }}
+                required
+                error={Boolean(errors.valorLocacao)}
+                helperText={errors.valorLocacao}
                 fullWidth
               />
             </Grid>
@@ -329,16 +492,32 @@ navigate(`/imoveis/${data.id}`);
             <Input
               label="CEP"
               value={form.cep}
-              onChange={handleChange("cep")}
+              onChange={handleCepChange}
+              inputProps={{ inputMode: "numeric", maxLength: 9 }}
+              InputProps={{
+                endAdornment: cepLoading ? (
+                  <InputAdornment position="end">
+                    <CircularProgress size={18} />
+                  </InputAdornment>
+                ) : null,
+              }}
+              error={Boolean(errors.cep)}
+              helperText={
+                errors.cep ||
+                (cepLoading ? "Consultando CEP..." : "Digite os 8 números para buscar")
+              }
               fullWidth
             />
           </Grid>
 
           <Grid item xs={12} md={7}>
             <Input
-              label="Endereço"
+              label="Rua"
               value={form.endereco}
               onChange={handleChange("endereco")}
+              required
+              error={Boolean(errors.endereco)}
+              helperText={errors.endereco}
               fullWidth
             />
           </Grid>
@@ -357,6 +536,9 @@ navigate(`/imoveis/${data.id}`);
               label="Bairro"
               value={form.bairro}
               onChange={handleChange("bairro")}
+              required
+              error={Boolean(errors.bairro)}
+              helperText={errors.bairro}
               fullWidth
             />
           </Grid>
@@ -366,6 +548,9 @@ navigate(`/imoveis/${data.id}`);
               label="Cidade"
               value={form.cidade}
               onChange={handleChange("cidade")}
+              required
+              error={Boolean(errors.cidade)}
+              helperText={errors.cidade}
               fullWidth
             />
           </Grid>
@@ -375,7 +560,10 @@ navigate(`/imoveis/${data.id}`);
               label="Estado"
               value={form.estado}
               inputProps={{ maxLength: 2 }}
-              onChange={handleChange("estado")}
+              onChange={handleMaskedChange("estado", formatStateInput)}
+              required
+              error={Boolean(errors.estado)}
+              helperText={errors.estado}
               fullWidth
             />
           </Grid>
@@ -427,19 +615,19 @@ navigate(`/imoveis/${data.id}`);
 
           <Grid item xs={12} md={6}>
             <Input
-              type="number"
               label="Área Terreno (m²)"
               value={form.areaTerreno}
-              onChange={handleChange("areaTerreno")}
+              onChange={handleMaskedChange("areaTerreno", formatAreaInput)}
+              inputProps={{ inputMode: "decimal" }}
             />
           </Grid>
 
           <Grid item xs={12} md={6}>
             <Input
-              type="number"
               label="Área Construída (m²)"
               value={form.areaConstruida}
-              onChange={handleChange("areaConstruida")}
+              onChange={handleMaskedChange("areaConstruida", formatAreaInput)}
+              inputProps={{ inputMode: "decimal" }}
             />
           </Grid>
 
