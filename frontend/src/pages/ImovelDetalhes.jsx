@@ -28,14 +28,14 @@ import {
   WhatsApp,
 } from "@mui/icons-material";
 import MainLayout from "../components/layout/MainLayout";
-import ImovelGallery from "../components/imoveis/ImovelGallery";
+import PropertyImages from "../components/property/PropertyImages";
 import Button from "../components/ui/Button";
 import Card from "../components/ui/Card";
 import ConfirmDialog from "../components/ui/ConfirmDialog";
 import Loading from "../components/ui/Loading";
 import { useToast } from "../components/ui/Toast";
 import api from "../api/axios";
-import { formatCurrency, formatDate, formatDateTime, STATUS_IMOVEL } from "../utils/formatters";
+import { formatCurrency, formatDate, formatDateTime } from "../utils/formatters";
 import {
   CARACTERISTICAS_IMOVEL,
   FINALIDADES_IMOVEL,
@@ -94,117 +94,41 @@ export default function ImovelDetalhes() {
   const [historyPage, setHistoryPage] = useState(1);
   const [chaveHistorico, setChaveHistorico] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [uploading, setUploading] = useState(false);
-  const [reordering, setReordering] = useState(false);
   const [confirm, setConfirm] = useState(null);
   const [confirming, setConfirming] = useState(false);
 
   const load = useCallback(async () => {
     try {
-      const response = await api.get(`/imoveis/${id}`);
+      const response = await api.get(`/properties/${id}`);
       setProperty(response.data);
       setChaveHistorico(response.data.chaveHistorico || []);
     } catch (error) {
-      toast.error(error.response?.data?.erro || "Erro ao carregar imóvel.");
+      toast.error(error.response?.data?.message || error.response?.data?.erro || "Erro ao carregar imóvel.");
       navigate("/imoveis");
     } finally {
       setLoading(false);
     }
   }, [id, navigate, toast]);
 
-  const loadHistory = useCallback(async () => {
-    try {
-      const response = await api.get(`/imoveis/${id}/historico`, {
-        params: { page: historyPage, limit: 10 },
-      });
-      setHistory(response.data.data);
-      setHistoryMeta(response.data.meta);
-    } catch {
-      setHistory([]);
-    }
-  }, [historyPage, id]);
-
   useEffect(() => {
     load();
   }, [load]);
 
   useEffect(() => {
-    loadHistory();
-  }, [loadHistory]);
-
-  const uploadPhotos = async (files, event) => {
-    if (!files.length) return;
-    const invalid = files.find((file) => (
-      !["image/jpeg", "image/png", "image/webp"].includes(file.type)
-      || file.size > 5 * 1024 * 1024
-    ));
-    if (invalid || files.length + property.fotos.length > 20) {
-      toast.error(invalid ? "Use imagens JPEG, PNG ou WebP com até 5 MB." : "O limite é de 20 fotos por imóvel.");
-      event.target.value = "";
-      return;
-    }
-    setUploading(true);
-    try {
-      const formData = new FormData();
-      files.forEach((file) => formData.append("fotos", file));
-      await api.post(`/imoveis/${id}/fotos`, formData);
-      toast.success("Fotos adicionadas.");
-      await load();
-      await loadHistory();
-    } catch (error) {
-      toast.error(error.response?.data?.erro || "Erro ao enviar fotos.");
-    } finally {
-      setUploading(false);
-      event.target.value = "";
-    }
-  };
-
-  const setMainPhoto = async (photo) => {
-    try {
-      await api.patch(`/imoveis/${id}/fotos/${photo.id}/principal`);
-      toast.success("Foto principal atualizada.");
-      load();
-      loadHistory();
-    } catch (error) {
-      toast.error(error.response?.data?.erro || "Erro ao atualizar foto principal.");
-    }
-  };
-
-  const reorderPhotos = async (fotoIds) => {
-    setReordering(true);
-    try {
-      const response = await api.put(`/imoveis/${id}/fotos/ordem`, { fotoIds });
-      setProperty((current) => ({ ...current, fotos: response.data }));
-      loadHistory();
-    } catch (error) {
-      toast.error(error.response?.data?.erro || "Erro ao reordenar fotos.");
-      load();
-    } finally {
-      setReordering(false);
-    }
-  };
+    setHistory([]);
+    setHistoryMeta({ page: 1, totalPages: 1 });
+  }, [historyPage]);
 
   const executeConfirmation = async () => {
+    if (confirm?.type !== "property") return;
     setConfirming(true);
     try {
-      if (confirm.type === "photo") {
-        await api.delete(`/imoveis/${id}/fotos/${confirm.item.id}`);
-        toast.success("Foto removida.");
-        await load();
-        await loadHistory();
-      } else if (confirm.type === "restore") {
-        await api.post(`/imoveis/${id}/reativar`);
-        toast.success("Imóvel reativado.");
-        await load();
-        await loadHistory();
-      } else {
-        await api.delete(`/imoveis/${id}`);
-        toast.success("Imóvel desativado.");
-        navigate("/imoveis");
-      }
+      await api.delete(`/properties/${id}`);
+      toast.success("Imóvel desativado.");
+      navigate("/imoveis");
       setConfirm(null);
     } catch (error) {
-      toast.error(error.response?.data?.erro || "Não foi possível concluir a ação.");
+      toast.error(error.response?.data?.message || error.response?.data?.erro || "Não foi possível concluir a ação.");
     } finally {
       setConfirming(false);
     }
@@ -221,8 +145,8 @@ export default function ImovelDetalhes() {
     property.estado,
   ].filter(Boolean).join(", ");
   const mainValue = property.finalidade === "LOCACAO"
-    ? property.valorAluguel
-    : property.valorVenda || property.valorAluguel;
+    ? property.valorLocacao
+    : property.valorVenda;
   const inactive = !property.ativo;
   const owner = property.proprietario;
   const ownerWhatsapp = whatsappLink(owner?.whatsapp || owner?.telefone);
@@ -235,9 +159,9 @@ export default function ImovelDetalhes() {
             <Button color="inherit" startIcon={<ArrowBack />} onClick={() => navigate("/imoveis")}>Voltar ao portfólio</Button>
             <Stack direction="row" spacing={1} alignItems="center" sx={{ mt: 1.5, mb: 0.5 }} flexWrap="wrap" useFlexGap>
               <Chip size="small" label={property.codigo} />
-              <Chip size="small" color={STATUS_IMOVEL[property.status]?.color || "default"} label={STATUS_IMOVEL[property.status]?.label || property.status} />
+              <Chip size="small" color={property.publicado ? "success" : "default"} label={property.publicado ? "Publicado" : "Não publicado"} />
               {inactive && <Chip size="small" color="error" label="Desativado" />}
-              {property.publicadoSite && !property.oculto && !property.emRevisao && <Chip size="small" color="success" label="No site" />}
+              {property.publicado && <Chip size="small" color="success" label="No site" />}
               {property.oculto && <Chip size="small" label="Oculto" />}
               {property.emRevisao && <Chip size="small" color="warning" label="Em revisão" />}
             </Stack>
@@ -255,20 +179,15 @@ export default function ImovelDetalhes() {
               </>
             )}
             {inactive && (
-              <Button variant="contained" startIcon={<RestartAltOutlined />} onClick={() => setConfirm({ type: "restore", item: property })}>Reativar imóvel</Button>
+              <Button variant="contained" startIcon={<RestartAltOutlined />} disabled title="Reativação temporariamente indisponível no backend">Reativar imóvel</Button>
             )}
           </Stack>
         </Stack>
 
-        <ImovelGallery
-          photos={property.fotos}
+        <PropertyImages
+          propertyId={id}
           title={property.titulo}
-          uploading={uploading}
-          reordering={reordering}
-          onUpload={inactive ? undefined : uploadPhotos}
-          onDelete={inactive ? undefined : (photo) => setConfirm({ type: "photo", item: photo })}
-          onSetPrincipal={inactive ? undefined : setMainPhoto}
-          onReorder={inactive ? undefined : reorderPhotos}
+          readOnly={inactive}
         />
 
         <Grid container spacing={3}>
@@ -287,7 +206,7 @@ export default function ImovelDetalhes() {
                     <Grid size={6}><InfoItem icon={BedOutlined} label="Quartos" value={property.quartos} /></Grid>
                     <Grid size={6}><InfoItem icon={BathtubOutlined} label="Banheiros" value={property.banheiros} /></Grid>
                     <Grid size={6}><InfoItem icon={DirectionsCarOutlined} label="Vagas" value={property.vagas} /></Grid>
-                    <Grid size={6}><InfoItem icon={SquareFootOutlined} label="Área útil" value={property.areaUtil ? `${property.areaUtil} m²` : "—"} /></Grid>
+                    <Grid size={6}><InfoItem icon={SquareFootOutlined} label="Área construída" value={property.areaConstruida ? `${property.areaConstruida} m²` : "—"} /></Grid>
                   </Grid>
                 </Stack>
                 <Divider sx={{ my: 3 }} />
@@ -339,6 +258,9 @@ export default function ImovelDetalhes() {
 
               <Card>
                 <Typography variant="h6" fontWeight={800} gutterBottom>Controle de chaves</Typography>
+                <Typography variant="caption" color="warning.main" display="block" sx={{ mb: 2 }}>
+                  Gerenciamento temporariamente desabilitado: o backend atual não expõe controle de chaves.
+                </Typography>
                 <Grid container spacing={2}>
                   <Grid size={{ xs: 12, sm: 6 }}><InfoItem icon={VpnKeyOutlined} label="Local das chaves" value={property.localChaves || "—"} /></Grid>
                   <Grid size={{ xs: 12, sm: 6 }}><InfoItem icon={VpnKeyOutlined} label="Código da chave" value={property.codigoChave || "—"} /></Grid>
@@ -380,7 +302,7 @@ export default function ImovelDetalhes() {
                 </Card>
               )}
 
-              {property.contratos.length > 0 && (
+              {(property.contratos || []).length > 0 && (
                 <Card>
                   <Typography variant="h6" fontWeight={800} gutterBottom>Contratos vinculados</Typography>
                   <Stack divider={<Divider flexItem />}>
@@ -400,6 +322,9 @@ export default function ImovelDetalhes() {
             <Stack spacing={3}>
               <Card>
                 <Typography variant="h6" fontWeight={800} gutterBottom>Proprietário</Typography>
+                <Typography variant="caption" color="warning.main" display="block" sx={{ mb: 2 }}>
+                  Vínculos com proprietário e corretor temporariamente desabilitados no backend atual.
+                </Typography>
                 {owner ? (
                   <Stack spacing={1.5}>
                     <InfoItem icon={PersonOutlined} label="Nome" value={owner.nome} />
@@ -423,6 +348,9 @@ export default function ImovelDetalhes() {
 
               <Card>
                 <Typography variant="h6" fontWeight={800} gutterBottom>Captação</Typography>
+                <Typography variant="caption" color="warning.main" display="block" sx={{ mb: 2 }}>
+                  Captação temporariamente desabilitada no backend atual.
+                </Typography>
                 <Stack spacing={1.25}>
                   <Stack direction="row" justifyContent="space-between"><Typography color="text.secondary">Data</Typography><Typography fontWeight={700}>{property.dataCaptacao ? formatDate(property.dataCaptacao) : "—"}</Typography></Stack>
                   <Stack direction="row" justifyContent="space-between"><Typography color="text.secondary">Origem</Typography><Typography fontWeight={700}>{optionLabel(ORIGENS_CAPTACAO, property.origemCaptacao)}</Typography></Stack>
@@ -437,6 +365,9 @@ export default function ImovelDetalhes() {
                   <HistoryOutlined color="primary" />
                   <Typography variant="h6" fontWeight={800}>Timeline</Typography>
                 </Stack>
+                <Typography variant="caption" color="warning.main" display="block" sx={{ mb: 2 }}>
+                  Histórico temporariamente desabilitado no backend atual.
+                </Typography>
                 <Stack spacing={2.25}>
                   {history.map((entry) => (
                     <Box key={entry.id} sx={{ pl: 2, borderLeft: 2, borderColor: "primary.light" }}>
@@ -470,15 +401,9 @@ export default function ImovelDetalhes() {
         onClose={() => setConfirm(null)}
         onConfirm={executeConfirmation}
         loading={confirming}
-        title={confirm?.type === "photo" ? "Remover foto" : confirm?.type === "restore" ? "Reativar imóvel" : "Desativar imóvel"}
-        description={
-          confirm?.type === "photo"
-            ? "A foto será removida permanentemente."
-            : confirm?.type === "restore"
-              ? "O imóvel voltará ao portfólio com status Disponível."
-              : "O imóvel deixará de aparecer no portfólio. Contratos ativos impedem esta ação."
-        }
-        confirmLabel={confirm?.type === "photo" ? "Remover" : confirm?.type === "restore" ? "Reativar" : "Desativar"}
+        title="Desativar imóvel"
+        description="O imóvel deixará de aparecer no portfólio."
+        confirmLabel="Desativar"
       />
     </MainLayout>
   );

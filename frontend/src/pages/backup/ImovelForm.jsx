@@ -175,8 +175,8 @@ export default function ImovelForm() {
 
   const load = useCallback(async () => {
     try {
-      const requests = [api.get("/imoveis/opcoes")];
-      if (editing) requests.push(api.get(`/imoveis/${id}`));
+      const requests = [Promise.resolve({ data: { corretores: [], proprietarios: [] } })];
+      if (editing) requests.push(api.get(`/properties/${id}`));
       const [optionsResponse, propertyResponse] = await Promise.all(requests);
       setOptions(optionsResponse.data);
       if (propertyResponse) {
@@ -263,8 +263,8 @@ export default function ImovelForm() {
   };
 
   const refreshPhotos = async () => {
-    const response = await api.get(`/imoveis/${id}`);
-    setExistingPhotos(response.data.fotos || []);
+    const response = await api.get(`/properties/${id}/images`);
+    setExistingPhotos(response.data || []);
     setChaveHistorico(response.data.chaveHistorico || []);
     setUpdatedAt(response.data.updatedAt || null);
   };
@@ -274,8 +274,8 @@ export default function ImovelForm() {
     setUploading(true);
     try {
       const formData = new FormData();
-      selected.forEach((file) => formData.append("fotos", file));
-      await api.post(`/imoveis/${id}/fotos`, formData);
+      selected.forEach((file) => formData.append("images", file));
+      await api.post(`/properties/${id}/images`, formData);
       await refreshPhotos();
       toast.success("Fotos enviadas.");
     } catch (error) {
@@ -289,7 +289,7 @@ export default function ImovelForm() {
   const reorderPhotos = async (fotoIds) => {
     setReordering(true);
     try {
-      const response = await api.put(`/imoveis/${id}/fotos/ordem`, { fotoIds });
+      const response = await api.patch(`/properties/${id}/images/order`, { imageIds: fotoIds });
       setExistingPhotos(Array.isArray(response.data) ? response.data : response.data.fotos || []);
     } catch (error) {
       toast.error(error.response?.data?.erro || "Não foi possível reordenar.");
@@ -301,7 +301,7 @@ export default function ImovelForm() {
 
   const setPrincipal = async (photo) => {
     try {
-      await api.patch(`/imoveis/${id}/fotos/${photo.id}/principal`);
+      await api.patch(`/properties/${id}/images/${photo.id}/cover`);
       await refreshPhotos();
       toast.success("Foto principal definida.");
     } catch (error) {
@@ -311,7 +311,7 @@ export default function ImovelForm() {
 
   const deletePhoto = async (photo) => {
     try {
-      await api.delete(`/imoveis/${id}/fotos/${photo.id}`);
+      await api.delete(`/properties/${id}/images/${photo.id}`);
       await refreshPhotos();
       toast.success("Foto removida.");
     } catch (error) {
@@ -371,15 +371,15 @@ export default function ImovelForm() {
     setSaving(true);
     try {
       const response = editing
-        ? await api.put(`/imoveis/${id}`, buildPayload())
-        : await api.post("/imoveis", buildPayload());
+        ? await api.patch(`/properties/${id}`, buildPayload())
+        : await api.post("/properties", buildPayload());
       const propertyId = response.data.id;
 
       if (files.length > 0) {
         try {
           const formData = new FormData();
-          files.forEach((file) => formData.append("fotos", file));
-          await api.post(`/imoveis/${propertyId}/fotos`, formData);
+          files.forEach((file) => formData.append("images", file));
+          await api.post(`/properties/${propertyId}/images`, formData);
         } catch (error) {
           toast.warning(error.response?.data?.erro || "Imóvel salvo, mas as fotos falharam.");
           navigate(`/imoveis/${propertyId}`);

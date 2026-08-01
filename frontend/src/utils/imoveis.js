@@ -1,7 +1,7 @@
 export const FINALIDADES_IMOVEL = [
   { value: "VENDA", label: "Venda" },
   { value: "LOCACAO", label: "Locação" },
-  { value: "VENDA_E_LOCACAO", label: "Venda e locação" },
+  { value: "VENDA_E_LOCACAO", label: "Venda e locação (indisponível)", disabled: true },
 ];
 
 export const TIPOS_IMOVEL = [
@@ -9,12 +9,12 @@ export const TIPOS_IMOVEL = [
   { value: "CASA", label: "Casa" },
   { value: "TERRENO", label: "Terreno" },
   { value: "COMERCIAL", label: "Imóvel comercial" },
-  { value: "RURAL", label: "Imóvel rural" },
-  { value: "KITNET", label: "Kitnet" },
-  { value: "SOBRADO", label: "Sobrado" },
-  { value: "COBERTURA", label: "Cobertura" },
-  { value: "GALPAO", label: "Galpão" },
-  { value: "SALA_COMERCIAL", label: "Sala comercial" },
+  { value: "RURAL", label: "Imóvel rural (indisponível)", disabled: true },
+  { value: "KITNET", label: "Kitnet (indisponível)", disabled: true },
+  { value: "SOBRADO", label: "Sobrado (indisponível)", disabled: true },
+  { value: "COBERTURA", label: "Cobertura (indisponível)", disabled: true },
+  { value: "GALPAO", label: "Galpão (indisponível)", disabled: true },
+  { value: "SALA_COMERCIAL", label: "Sala comercial (indisponível)", disabled: true },
 ];
 
 export const STATUS_OPTIONS = [

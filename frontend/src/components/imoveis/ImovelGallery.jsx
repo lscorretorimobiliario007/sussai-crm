@@ -24,7 +24,7 @@ import {
 import AuthenticatedImage from "./AuthenticatedImage";
 import Button from "../ui/Button";
 
-function SortableThumb({ photo, selected, onSelect, onSetPrincipal, onDelete, canManage }) {
+function SortableThumb({ photo, selected, onSelect, onSetCover, onDelete, canManage }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: photo.id });
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -50,7 +50,7 @@ function SortableThumb({ photo, selected, onSelect, onSetPrincipal, onDelete, ca
       }}
     >
       <AuthenticatedImage src={photo.url} alt="" sx={{ width: 100, height: 76 }} />
-      {photo.principal && <Star sx={{ position: "absolute", top: 4, right: 4, color: "warning.main", fontSize: 18 }} />}
+      {photo.isCover && <Star sx={{ position: "absolute", top: 4, right: 4, color: "warning.main", fontSize: 18 }} />}
       {canManage && (
         <Stack
           direction="row"
@@ -61,8 +61,8 @@ function SortableThumb({ photo, selected, onSelect, onSetPrincipal, onDelete, ca
           <IconButton size="small" {...attributes} {...listeners} sx={{ bgcolor: "rgba(15,23,42,.72)", color: "white", width: 24, height: 24 }}>
             <DragIndicator sx={{ fontSize: 14 }} />
           </IconButton>
-          {!photo.principal && onSetPrincipal && (
-            <IconButton size="small" onClick={() => onSetPrincipal(photo)} sx={{ bgcolor: "rgba(15,23,42,.72)", color: "white", width: 24, height: 24 }}>
+          {!photo.isCover && onSetCover && (
+            <IconButton size="small" onClick={() => onSetCover(photo)} sx={{ bgcolor: "rgba(15,23,42,.72)", color: "white", width: 24, height: 24 }}>
               <StarBorder sx={{ fontSize: 14 }} />
             </IconButton>
           )}
@@ -82,16 +82,17 @@ export default function ImovelGallery({
   title,
   uploading = false,
   reordering = false,
+  maxImages = 40,
   onUpload,
   onDelete,
-  onSetPrincipal,
+  onSetCover,
   onReorder,
 }) {
   const [selectedId, setSelectedId] = useState(null);
   const selectedIndex = photos.findIndex((photo) => photo.id === selectedId);
   const selected = selectedIndex >= 0 ? photos[selectedIndex] : photos[0];
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 6 } }));
-  const canManage = Boolean(onReorder || onDelete || onSetPrincipal);
+  const canManage = Boolean(onReorder || onDelete || onSetCover);
 
   useEffect(() => {
     if (photos.length && !photos.some((photo) => photo.id === selectedId)) {
@@ -116,10 +117,10 @@ export default function ImovelGallery({
         <AuthenticatedImage src={selected?.url} alt={title} sx={{ width: "100%", height: { xs: 280, md: 480 } }} />
         {selected && (
           <Stack direction="row" spacing={1} sx={{ position: "absolute", top: 16, right: 16 }}>
-            {selected.principal && <Chip icon={<Star />} label="Foto principal" color="primary" />}
-            {!selected.principal && onSetPrincipal && (
+            {selected.isCover && <Chip icon={<Star />} label="Foto principal" color="primary" />}
+            {!selected.isCover && onSetCover && (
               <Tooltip title="Definir como principal">
-                <IconButton onClick={() => onSetPrincipal(selected)} sx={{ bgcolor: "background.paper" }}>
+                <IconButton onClick={() => onSetCover(selected)} sx={{ bgcolor: "background.paper" }}>
                   <StarBorder />
                 </IconButton>
               </Tooltip>
@@ -144,12 +145,12 @@ export default function ImovelGallery({
                 photo={photo}
                 selected={selected?.id === photo.id}
                 onSelect={setSelectedId}
-                onSetPrincipal={onSetPrincipal}
+                onSetCover={onSetCover}
                 onDelete={onDelete}
                 canManage={canManage}
               />
             ))}
-            {onUpload && photos.length < 20 && (
+            {onUpload && photos.length < maxImages && (
               <Button component="label" variant="outlined" loading={uploading} startIcon={<AddPhotoAlternateOutlined />} sx={{ minWidth: 160, minHeight: 76 }}>
                 Adicionar fotos
                 <input hidden multiple type="file" accept="image/jpeg,image/png,image/webp" onChange={(event) => onUpload(Array.from(event.target.files || []), event)} />
@@ -159,7 +160,7 @@ export default function ImovelGallery({
         </SortableContext>
       </DndContext>
       <Typography variant="caption" color="text.secondary">
-        {photos.length}/20 fotos{onReorder ? " • arraste para reordenar • estrela = principal" : ""}
+        {photos.length}/{maxImages} fotos{onReorder ? " • arraste para reordenar • estrela = principal" : ""}
       </Typography>
     </Stack>
   );

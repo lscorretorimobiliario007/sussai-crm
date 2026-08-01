@@ -1,8 +1,32 @@
+import { useEffect, useMemo, useState } from "react";
 import { Box } from "@mui/material";
 import { HomeWorkOutlined } from "@mui/icons-material";
+import api from "../../api/axios";
+
+function resolveImageUrl(src) {
+  if (!src) return null;
+  if (/^(blob:|data:|https?:\/\/)/i.test(src)) return src;
+
+  const apiBaseUrl = String(api.defaults.baseURL || "").replace(/\/+$/, "");
+  const apiOrigin = apiBaseUrl ? new URL(apiBaseUrl, window.location.origin).origin : window.location.origin;
+  const normalizedSrc = String(src).replace(/\\/g, "/");
+
+  if (normalizedSrc.startsWith("/uploads/")) return `${apiOrigin}${normalizedSrc}`;
+  if (normalizedSrc.startsWith("uploads/")) return `${apiOrigin}/${normalizedSrc}`;
+  if (normalizedSrc.startsWith("properties/")) return `${apiOrigin}/uploads/${normalizedSrc}`;
+
+  return `${apiBaseUrl}/${normalizedSrc.replace(/^\/+/, "")}`;
+}
 
 export default function AuthenticatedImage({ src, alt = "", sx }) {
-  if (!src) {
+  const resolvedSrc = useMemo(() => resolveImageUrl(src), [src]);
+  const [failed, setFailed] = useState(false);
+
+  useEffect(() => {
+    setFailed(false);
+  }, [resolvedSrc]);
+
+  if (!resolvedSrc || failed) {
     return (
       <Box
         sx={{
@@ -21,7 +45,7 @@ export default function AuthenticatedImage({ src, alt = "", sx }) {
   return (
     <Box
       component="img"
-      src={`http://localhost:3000${src}`}
+      src={resolvedSrc}
       alt={alt}
       sx={{
         width: "100%",
@@ -30,9 +54,7 @@ export default function AuthenticatedImage({ src, alt = "", sx }) {
         display: "block",
         ...sx,
       }}
-      onError={(e) => {
-        e.currentTarget.style.display = "none";
-      }}
+      onError={() => setFailed(true)}
     />
   );
 }

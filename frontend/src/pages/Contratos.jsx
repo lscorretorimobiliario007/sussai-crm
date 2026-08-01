@@ -71,7 +71,7 @@ export default function Contratos() {
 
   useEffect(() => {
     carregar();
-    api.get("/imoveis", { params: { limit: 100 } }).then((res) => setImoveis(res.data?.data || [])).catch(() => {});
+    api.get("/properties", { params: { limit: 100 } }).then((res) => setImoveis(res.data?.data || [])).catch(() => {});
     api.get("/clientes", { params: { limit: 100 } }).then((res) => setClientes(res.data?.data || [])).catch(() => {});
   }, [carregar]);
 

@@ -16,7 +16,7 @@ export default function MainLayout({ title, children }) {
       return () => window.clearTimeout(timer);
     }
     return undefined;
-  }, [usuario?.id]);
+  }, [usuario]);
 
   return (
     <Box sx={{ display: "flex", minHeight: "100vh", bgcolor: "background.default" }}>

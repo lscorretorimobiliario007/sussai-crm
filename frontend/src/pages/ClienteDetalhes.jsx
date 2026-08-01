@@ -93,7 +93,7 @@ export default function ClienteDetalhes() {
     try {
       const [clientResponse, imoveisResponse] = await Promise.all([
         api.get(`/clientes/${id}`),
-        api.get("/imoveis", { params: { limit: 100, ativo: "true" } }),
+        api.get("/properties", { params: { limit: 100 } }),
       ]);
       setClient(clientResponse.data);
       setImoveis(imoveisResponse.data?.data || []);

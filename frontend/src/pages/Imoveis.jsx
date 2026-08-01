@@ -36,7 +36,7 @@ import Loading from "../components/ui/Loading";
 import Select from "../components/ui/Select";
 import { useToast } from "../components/ui/Toast";
 import api from "../api/axios";
-import { formatCurrency, STATUS_IMOVEL } from "../utils/formatters";
+import { formatCurrency } from "../utils/formatters";
 import {
   FILTROS_CARACTERISTICAS_SITE,
   FINALIDADES_IMOVEL,
@@ -84,7 +84,6 @@ export default function Imoveis() {
   const [meta, setMeta] = useState({ page: 1, totalPages: 1, total: 0 });
   const [filters, setFilters] = useState(initialFilters);
   const [search, setSearch] = useState("");
-  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [filtersOpen, setFiltersOpen] = useState(false);
@@ -92,14 +91,6 @@ export default function Imoveis() {
   const [restoreTarget, setRestoreTarget] = useState(null);
   const [deleting, setDeleting] = useState(false);
   const [restoring, setRestoring] = useState(false);
-
-  useEffect(() => {
-    const timeout = setTimeout(() => {
-      setDebouncedSearch(search);
-      setPage(1);
-    }, 350);
-    return () => clearTimeout(timeout);
-  }, [search]);
 
 useEffect(() => {
   setOptions({
@@ -131,7 +122,7 @@ if (filters.bairro) params.bairro = filters.bairro;
     } finally {
       setLoading(false);
     }
-  }, [debouncedSearch, filters, page, toast]);
+  }, [filters, page, toast]);
 
   useEffect(() => {
     load();
@@ -155,7 +146,6 @@ if (filters.bairro) params.bairro = filters.bairro;
   const clearFilters = () => {
     setFilters(initialFilters);
     setSearch("");
-    setDebouncedSearch("");
     setPage(1);
   };
 
@@ -184,12 +174,8 @@ if (filters.bairro) params.bairro = filters.bairro;
   const restore = async () => {
     setRestoring(true);
     try {
-      await api.patch(`/properties/${restoreTarget.id}/restore`);
-      toast.success("Imóvel reativado com sucesso.");
+      toast.warning("Reativação temporariamente desabilitada no backend atual.");
       setRestoreTarget(null);
-      load();
-    } catch (error) {
-      toast.error(error.response?.data?.erro || "Erro ao reativar imóvel.");
     } finally {
       setRestoring(false);
     }
@@ -217,10 +203,12 @@ if (filters.bairro) params.bairro = filters.bairro;
               placeholder="Busque por título, código, endereço, bairro ou cidade"
               value={search}
               onChange={(event) => setSearch(event.target.value)}
+              disabled
+              helperText="Busca textual temporariamente indisponível no backend atual."
               slotProps={{ input: { startAdornment: <InputAdornment position="start"><Search /></InputAdornment> } }}
               sx={{ flex: 1 }}
             />
-            <Select size="small" label="Ordenar" value={filters.ordenacao} options={ORDENACOES_IMOVEL} onChange={(event) => updateFilter("ordenacao", event.target.value)} sx={{ minWidth: 190 }} />
+            <Select size="small" label="Ordenar" value={filters.ordenacao} options={ORDENACOES_IMOVEL} onChange={(event) => updateFilter("ordenacao", event.target.value)} sx={{ minWidth: 190 }} disabled />
             <Button
               color={filtersOpen ? "primary" : "inherit"}
               variant={filtersOpen ? "contained" : "outlined"}
@@ -243,32 +231,34 @@ if (filters.bairro) params.bairro = filters.bairro;
                     { value: "false", label: "Inativos" },
                   ]}
                   onChange={(event) => updateFilter("ativo", event.target.value)}
+                  disabled
+                  helperText="Inativos temporariamente indisponíveis."
                 />
               </Grid>
-              <Grid size={{ xs: 12, sm: 6, md: 3 }}><Select size="small" label="Status" value={filters.status} options={[{ value: "", label: "Todos" }, ...STATUS_OPTIONS]} onChange={(event) => updateFilter("status", event.target.value)} /></Grid>
+              <Grid size={{ xs: 12, sm: 6, md: 3 }}><Select size="small" label="Status" value={filters.status} options={[{ value: "", label: "Todos" }, ...STATUS_OPTIONS]} onChange={(event) => updateFilter("status", event.target.value)} disabled /></Grid>
               <Grid size={{ xs: 12, sm: 6, md: 3 }}><Select size="small" label="Finalidade" value={filters.finalidade} options={[{ value: "", label: "Todas" }, ...FINALIDADES_IMOVEL]} onChange={(event) => updateFilter("finalidade", event.target.value)} /></Grid>
               <Grid size={{ xs: 12, sm: 6, md: 3 }}><Select size="small" label="Tipo" value={filters.tipo} options={[{ value: "", label: "Todos" }, ...TIPOS_IMOVEL]} onChange={(event) => updateFilter("tipo", event.target.value)} /></Grid>
               <Grid size={{ xs: 12, sm: 6, md: 3 }}><Input size="small" label="Cidade" value={filters.cidade} onChange={(event) => updateFilter("cidade", event.target.value)} /></Grid>
               <Grid size={{ xs: 12, sm: 6, md: 3 }}><Input size="small" label="Bairro" value={filters.bairro} onChange={(event) => updateFilter("bairro", event.target.value)} /></Grid>
-              <Grid size={{ xs: 12, sm: 6, md: 3 }}><Select size="small" label="Corretor" value={filters.corretorId} options={[{ value: "", label: "Todos" }, ...options.corretores.map((item) => ({ value: item.id, label: item.nome }))]} onChange={(event) => updateFilter("corretorId", event.target.value)} /></Grid>
-              <Grid size={{ xs: 12, sm: 6, md: 3 }}><Select size="small" label="Proprietário" value={filters.proprietarioId} options={[{ value: "", label: "Todos" }, ...options.proprietarios.map((item) => ({ value: item.id, label: item.nome }))]} onChange={(event) => updateFilter("proprietarioId", event.target.value)} /></Grid>
-              <Grid size={{ xs: 6, sm: 3, md: 1.5 }}><Input size="small" type="number" label="Valor mín." value={filters.valorMin} onChange={(event) => updateFilter("valorMin", event.target.value)} /></Grid>
-              <Grid size={{ xs: 6, sm: 3, md: 1.5 }}><Input size="small" type="number" label="Valor máx." value={filters.valorMax} onChange={(event) => updateFilter("valorMax", event.target.value)} /></Grid>
-              <Grid size={{ xs: 4, md: 1 }}><Input size="small" type="number" label="Quartos" value={filters.quartosMin} onChange={(event) => updateFilter("quartosMin", event.target.value)} /></Grid>
-              <Grid size={{ xs: 4, md: 1 }}><Input size="small" type="number" label="Banheiros" value={filters.banheirosMin} onChange={(event) => updateFilter("banheirosMin", event.target.value)} /></Grid>
-              <Grid size={{ xs: 4, md: 1 }}><Input size="small" type="number" label="Vagas" value={filters.vagasMin} onChange={(event) => updateFilter("vagasMin", event.target.value)} /></Grid>
-              <Grid size={{ xs: 12, sm: 6, md: 3 }}><Select size="small" label="Ocupação" value={filters.ocupacao} options={[{ value: "", label: "Todas" }, ...OCUPACOES_IMOVEL]} onChange={(event) => updateFilter("ocupacao", event.target.value)} /></Grid>
-              <Grid size={{ xs: 12, sm: 6, md: 3 }}><Select size="small" label="Exclusividade" value={filters.exclusividade} options={BOOL_FILTER_OPTIONS} onChange={(event) => updateFilter("exclusividade", event.target.value)} /></Grid>
-              <Grid size={{ xs: 12, sm: 6, md: 3 }}><Select size="small" label="Aceita financiamento" value={filters.aceitaFinanciamento} options={BOOL_FILTER_OPTIONS} onChange={(event) => updateFilter("aceitaFinanciamento", event.target.value)} /></Grid>
-              <Grid size={{ xs: 12, sm: 6, md: 3 }}><Select size="small" label="Aceita permuta" value={filters.aceitaPermuta} options={BOOL_FILTER_OPTIONS} onChange={(event) => updateFilter("aceitaPermuta", event.target.value)} /></Grid>
-              <Grid size={{ xs: 12, sm: 6, md: 3 }}><Select size="small" label="Chave retirada" value={filters.chaveRetirada} options={BOOL_FILTER_OPTIONS} onChange={(event) => updateFilter("chaveRetirada", event.target.value)} /></Grid>
+              <Grid size={{ xs: 12, sm: 6, md: 3 }}><Select size="small" label="Corretor" value={filters.corretorId} options={[{ value: "", label: "Todos" }, ...options.corretores.map((item) => ({ value: item.id, label: item.nome }))]} onChange={(event) => updateFilter("corretorId", event.target.value)} disabled /></Grid>
+              <Grid size={{ xs: 12, sm: 6, md: 3 }}><Select size="small" label="Proprietário" value={filters.proprietarioId} options={[{ value: "", label: "Todos" }, ...options.proprietarios.map((item) => ({ value: item.id, label: item.nome }))]} onChange={(event) => updateFilter("proprietarioId", event.target.value)} disabled /></Grid>
+              <Grid size={{ xs: 6, sm: 3, md: 1.5 }}><Input size="small" type="number" label="Valor mín." value={filters.valorMin} onChange={(event) => updateFilter("valorMin", event.target.value)} disabled /></Grid>
+              <Grid size={{ xs: 6, sm: 3, md: 1.5 }}><Input size="small" type="number" label="Valor máx." value={filters.valorMax} onChange={(event) => updateFilter("valorMax", event.target.value)} disabled /></Grid>
+              <Grid size={{ xs: 4, md: 1 }}><Input size="small" type="number" label="Quartos" value={filters.quartosMin} onChange={(event) => updateFilter("quartosMin", event.target.value)} disabled /></Grid>
+              <Grid size={{ xs: 4, md: 1 }}><Input size="small" type="number" label="Banheiros" value={filters.banheirosMin} onChange={(event) => updateFilter("banheirosMin", event.target.value)} disabled /></Grid>
+              <Grid size={{ xs: 4, md: 1 }}><Input size="small" type="number" label="Vagas" value={filters.vagasMin} onChange={(event) => updateFilter("vagasMin", event.target.value)} disabled /></Grid>
+              <Grid size={{ xs: 12, sm: 6, md: 3 }}><Select size="small" label="Ocupação" value={filters.ocupacao} options={[{ value: "", label: "Todas" }, ...OCUPACOES_IMOVEL]} onChange={(event) => updateFilter("ocupacao", event.target.value)} disabled /></Grid>
+              <Grid size={{ xs: 12, sm: 6, md: 3 }}><Select size="small" label="Exclusividade" value={filters.exclusividade} options={BOOL_FILTER_OPTIONS} onChange={(event) => updateFilter("exclusividade", event.target.value)} disabled /></Grid>
+              <Grid size={{ xs: 12, sm: 6, md: 3 }}><Select size="small" label="Aceita financiamento" value={filters.aceitaFinanciamento} options={BOOL_FILTER_OPTIONS} onChange={(event) => updateFilter("aceitaFinanciamento", event.target.value)} disabled /></Grid>
+              <Grid size={{ xs: 12, sm: 6, md: 3 }}><Select size="small" label="Aceita permuta" value={filters.aceitaPermuta} options={BOOL_FILTER_OPTIONS} onChange={(event) => updateFilter("aceitaPermuta", event.target.value)} disabled /></Grid>
+              <Grid size={{ xs: 12, sm: 6, md: 3 }}><Select size="small" label="Chave retirada" value={filters.chaveRetirada} options={BOOL_FILTER_OPTIONS} onChange={(event) => updateFilter("chaveRetirada", event.target.value)} disabled /></Grid>
               <Grid size={{ xs: 12 }}>
                 <Typography variant="caption" color="text.secondary" sx={{ display: "block", mb: 1, fontWeight: 700 }}>
                   Comodidades (CRM + site)
                 </Typography>
                 <Stack direction="row" flexWrap="wrap" gap={1}>
                   {FILTROS_CARACTERISTICAS_SITE.map((item) => (
-                    <Chip key={item.value} label={item.label} clickable color={filters.caracteristicas.includes(item.value) ? "primary" : "default"} variant={filters.caracteristicas.includes(item.value) ? "filled" : "outlined"} onClick={() => toggleFeature(item.value)} />
+                    <Chip key={item.value} label={item.label} clickable disabled color={filters.caracteristicas.includes(item.value) ? "primary" : "default"} variant={filters.caracteristicas.includes(item.value) ? "filled" : "outlined"} onClick={() => toggleFeature(item.value)} />
                   ))}
                 </Stack>
               </Grid>
@@ -290,7 +280,7 @@ if (filters.bairro) params.bairro = filters.bairro;
           <Grid container spacing={2.5}>
             {properties.map((property) => {
               const photo = property.images?.[0];
-              const value = property.finalidade === "LOCACAO" ? property.valorAluguel : property.valorVenda || property.valorAluguel;
+              const value = property.finalidade === "LOCACAO" ? property.valorLocacao : property.valorVenda;
               return (
                 <Grid size={{ xs: 12, sm: 6, xl: 4 }} key={property.id}>
                   <Card
@@ -309,7 +299,7 @@ if (filters.bairro) params.bairro = filters.bairro;
   sx={{ width: "100%", height: 220 }}
 />
                       <Stack direction="row" spacing={1} sx={{ position: "absolute", top: 14, left: 14, right: 14, justifyContent: "space-between" }}>
-                        <Chip size="small" label={STATUS_IMOVEL[property.status]?.label || property.status} color={STATUS_IMOVEL[property.status]?.color || "default"} sx={{ fontWeight: 750 }} />
+                        <Chip size="small" label={property.publicado ? "Publicado" : "Não publicado"} color={property.publicado ? "success" : "default"} sx={{ fontWeight: 750 }} />
                         <Chip size="small" label={property.codigo} sx={{ bgcolor: "rgba(15,23,42,.82)", color: "white", fontWeight: 750 }} />
                       </Stack>
                     </Box>
@@ -330,7 +320,7 @@ if (filters.bairro) params.bairro = filters.bairro;
                         <Stack direction="row" spacing={0.5} alignItems="center"><SquareFootOutlined fontSize="small" /><Typography variant="caption">{property.areaUtil || property.areaConstruida || "—"} m²</Typography></Stack>
                       </Stack>
                       <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mt: 2.5, pt: 2, borderTop: 1, borderColor: "divider" }}>
-                        <Typography variant="body2" color="text.secondary">{property.corretor?.nome || "Sem corretor"}</Typography>
+                        <Typography variant="body2" color="text.secondary">{property.corretor?.nome || "Corretor indisponível"}</Typography>
                         <Box onClick={(event) => event.stopPropagation()}>
                           <Tooltip title="Visualizar"><IconButton onClick={() => navigate(`/imoveis/${property.id}`)}><VisibilityOutlined /></IconButton></Tooltip>
                           {property.ativo !== false && (
@@ -340,7 +330,7 @@ if (filters.bairro) params.bairro = filters.bairro;
                             </>
                           )}
                           {property.ativo === false && (
-                            <Tooltip title="Reativar"><IconButton color="primary" onClick={() => setRestoreTarget(property)}><RestartAltOutlined /></IconButton></Tooltip>
+                            <Tooltip title="Reativação temporariamente indisponível"><span><IconButton color="primary" disabled onClick={() => setRestoreTarget(property)}><RestartAltOutlined /></IconButton></span></Tooltip>
                           )}
                         </Box>
                       </Stack>

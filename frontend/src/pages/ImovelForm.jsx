@@ -1,5 +1,5 @@
 import PropertyImages from "../components/property/PropertyImages";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import {
   Box,
@@ -29,9 +29,9 @@ const TIPOS = [
   { value: "APARTAMENTO", label: "Apartamento" },
   { value: "TERRENO", label: "Terreno" },
   { value: "COMERCIAL", label: "Comercial" },
-  { value: "RURAL", label: "Rural" },
-  { value: "SOBRADO", label: "Sobrado" },
-  { value: "CHACARA", label: "Chácara" },
+  { value: "RURAL", label: "Rural (indisponível)", disabled: true },
+  { value: "SOBRADO", label: "Sobrado (indisponível)", disabled: true },
+  { value: "CHACARA", label: "Chácara (indisponível)", disabled: true },
 ];
 
 const initialState = {
@@ -88,13 +88,7 @@ export default function ImovelForm() {
     }));
   };
 
-  useEffect(() => {
-    if (!editando) return;
-
-    carregarImovel();
-  }, [id]);
-
-  async function carregarImovel() {
+  const carregarImovel = useCallback(async () => {
     try {
       setLoading(true);
 
@@ -128,13 +122,18 @@ export default function ImovelForm() {
         destaque: Boolean(data.destaque),
         publicado: Boolean(data.publicado),
       });
-    } catch (e) {
+    } catch {
       toast.error("Erro ao carregar imóvel.");
       navigate("/imoveis");
     } finally {
       setLoading(false);
     }
-  }
+  }, [id, navigate, toast]);
+
+  useEffect(() => {
+    if (!editando) return;
+    carregarImovel();
+  }, [carregarImovel, editando]);
 
   function montarPayload() {
     return {
@@ -182,18 +181,15 @@ export default function ImovelForm() {
   }
 
  async function salvar() {
-  console.log("Entrou em salvar");
-
   try {
     setSaving(true);
 
     const payload = montarPayload();
 
-    console.log(payload);
-
     if (editando) {
       await api.patch(`/properties/${id}`, payload);
       toast.success("Imóvel atualizado com sucesso.");
+      navigate(`/imoveis/${id}`);
     } else {
    const { data } = await api.post("/properties", payload);
 
@@ -202,11 +198,9 @@ toast.success("Imóvel cadastrado com sucesso.");
 navigate(`/imoveis/${data.id}`);
   } 
 }   catch (e) {
-    console.error(e);
-
+    const message = e.response?.data?.message || e.response?.data?.erro;
     toast.error(
-      e.response?.data?.message ||
-      e.response?.data?.erro ||
+      (Array.isArray(message) ? message.join(", ") : message) ||
       "Erro ao salvar."
     );
   } finally {
@@ -276,7 +270,7 @@ navigate(`/imoveis/${data.id}`);
               fullWidth
             >
               {FINALIDADES.map((item) => (
-                <MenuItem key={item.value} value={item.value}>
+                <MenuItem key={item.value} value={item.value} disabled={item.disabled}>
                   {item.label}
                 </MenuItem>
               ))}
@@ -292,7 +286,7 @@ navigate(`/imoveis/${data.id}`);
               fullWidth
             >
               {TIPOS.map((item) => (
-                <MenuItem key={item.value} value={item.value}>
+                <MenuItem key={item.value} value={item.value} disabled={item.disabled}>
                   {item.label}
                 </MenuItem>
               ))}
@@ -483,7 +477,7 @@ navigate(`/imoveis/${data.id}`);
           </Grid>
           {editando && (
   <Grid item xs={12}>
-    <PropertyImages propertyId={id} />
+    <PropertyImages propertyId={id} title={form.titulo || "Imóvel"} />
   </Grid>
 )}
                     <Grid item xs={12}>
@@ -502,10 +496,7 @@ navigate(`/imoveis/${data.id}`);
 
              <Button
   variant="contained"
-  onClick={() => {
-    console.log("BOTÃO CLICADO");
-    salvar();
-  }}
+  onClick={salvar}
   disabled={saving}
 >
                 {saving

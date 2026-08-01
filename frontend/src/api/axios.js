@@ -1,7 +1,12 @@
 import axios from "axios";
 
+function normalizeApiBaseUrl(value) {
+  const baseUrl = String(value || "http://localhost:3000").replace(/\/+$/, "");
+  return baseUrl.endsWith("/api") ? baseUrl : `${baseUrl}/api`;
+}
+
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || "http://localhost:3000/api",
+  baseURL: normalizeApiBaseUrl(import.meta.env.VITE_API_URL),
 });
 
 
