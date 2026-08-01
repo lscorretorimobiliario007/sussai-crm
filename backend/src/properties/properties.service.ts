@@ -17,6 +17,16 @@ import { QueryPropertyDto } from './dto/query-property.dto';
 import { buildPropertySlug, slugify } from '../common/utils/slug';
 
 type PropertyWithCover = Property & {
+  proprietario?: {
+    id: number;
+    nome: string;
+    cpf: string | null;
+    cnpj: string | null;
+    telefone: string | null;
+    celular: string | null;
+    whatsapp: string | null;
+    email: string | null;
+  } | null;
   images: {
     id: number;
     filePath: string;
@@ -47,6 +57,9 @@ export class PropertiesService {
 
     this.assertCommercialRules(dto);
     this.assertCep(dto.cep);
+    if (dto.proprietarioId != null) {
+      await this.ensureOwnerAccess(empresaId, dto.proprietarioId);
+    }
 
     const codigo = await this.generateCodigo(empresaId);
 
@@ -65,6 +78,8 @@ export class PropertiesService {
         data: {
 
           empresaId,
+
+          proprietarioId: dto.proprietarioId ?? null,
 
           codigo,
 
@@ -238,6 +253,19 @@ export class PropertiesService {
 
       include: {
 
+        proprietario: {
+          select: {
+            id: true,
+            nome: true,
+            cpf: true,
+            cnpj: true,
+            telefone: true,
+            celular: true,
+            whatsapp: true,
+            email: true,
+          },
+        },
+
         images: {
 
           orderBy: [
@@ -304,8 +332,17 @@ export class PropertiesService {
     this.assertCommercialRules(merged);
 
     this.assertCep(merged.cep);
+    if (dto.proprietarioId != null) {
+      await this.ensureOwnerAccess(empresaId, dto.proprietarioId);
+    }
 
     const data: Prisma.PropertyUpdateInput = {};
+
+    if (dto.proprietarioId !== undefined) {
+      data.proprietario = dto.proprietarioId
+        ? { connect: { id: dto.proprietarioId } }
+        : { disconnect: true };
+    }
 
     if (dto.titulo !== undefined)
       data.titulo = dto.titulo.trim();
@@ -603,6 +640,26 @@ export class PropertiesService {
     }
 
     return `IMV-${Date.now().toString().slice(-8)}`;
+  }
+
+  private async ensureOwnerAccess(
+    empresaId: number,
+    proprietarioId: number,
+  ): Promise<void> {
+    const owner = await this.prisma.propertyOwner.findFirst({
+      where: {
+        id: proprietarioId,
+        empresaId,
+        ativo: true,
+      },
+      select: { id: true },
+    });
+
+    if (!owner) {
+      throw new BadRequestException(
+        'Selecione um proprietário ativo desta empresa',
+      );
+    }
   }
 
   private async ensureUniqueSlug(

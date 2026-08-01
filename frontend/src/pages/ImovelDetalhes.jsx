@@ -149,7 +149,7 @@ export default function ImovelDetalhes() {
     : property.valorVenda;
   const inactive = !property.ativo;
   const owner = property.proprietario;
-  const ownerWhatsapp = whatsappLink(owner?.whatsapp || owner?.telefone);
+  const ownerWhatsapp = whatsappLink(owner?.whatsapp || owner?.celular || owner?.telefone);
 
   return (
     <MainLayout title="Detalhes do imóvel">
@@ -322,14 +322,11 @@ export default function ImovelDetalhes() {
             <Stack spacing={3}>
               <Card>
                 <Typography variant="h6" fontWeight={800} gutterBottom>Proprietário</Typography>
-                <Typography variant="caption" color="warning.main" display="block" sx={{ mb: 2 }}>
-                  Vínculos com proprietário e corretor temporariamente desabilitados no backend atual.
-                </Typography>
                 {owner ? (
                   <Stack spacing={1.5}>
                     <InfoItem icon={PersonOutlined} label="Nome" value={owner.nome} />
-                    <ContactLine icon={WhatsApp} label="WhatsApp" value={owner.whatsapp || owner.telefone} href={ownerWhatsapp} />
-                    <ContactLine icon={PhoneOutlined} label="Telefone" value={owner.telefone} href={owner.telefone ? `tel:${owner.telefone}` : null} />
+                    <ContactLine icon={WhatsApp} label="WhatsApp" value={owner.whatsapp || owner.celular || owner.telefone} href={ownerWhatsapp} />
+                    <ContactLine icon={PhoneOutlined} label="Telefone" value={owner.celular || owner.telefone} href={(owner.celular || owner.telefone) ? `tel:${owner.celular || owner.telefone}` : null} />
                     <ContactLine icon={EmailOutlined} label="E-mail" value={owner.email} href={owner.email ? `mailto:${owner.email}` : null} />
                   </Stack>
                 ) : (

@@ -14,6 +14,7 @@ import { SiteModule } from './site/site.module';
 import { LeadsModule } from './leads/leads.module';
 import { PipelineModule } from './pipeline/pipeline.module';
 import { DashboardModule } from './dashboard/dashboard.module';
+import { PropertyOwnersModule } from './property-owners/property-owners.module';
 
 @Module({
   imports: [
@@ -32,6 +33,7 @@ import { DashboardModule } from './dashboard/dashboard.module';
     LeadsModule,
     PipelineModule,
     DashboardModule,
+    PropertyOwnersModule,
   ],
   controllers: [AppController],
   providers: [AppService],

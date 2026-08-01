@@ -1,4 +1,5 @@
 import PropertyImages from "../components/property/PropertyImages";
+import PropertyOwnerSelector from "../components/property/PropertyOwnerSelector";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import {
@@ -82,6 +83,7 @@ function formatStateInput(value) {
 }
 
 const initialState = {
+  proprietarioId: null,
   titulo: "",
   descricao: "",
   finalidade: "VENDA",
@@ -125,6 +127,7 @@ export default function ImovelForm() {
   const cepRequestRef = useRef(0);
 
   const [form, setForm] = useState(initialState);
+  const [selectedOwner, setSelectedOwner] = useState(null);
 
   const handleChange = (campo) => (event) => {
     const value =
@@ -209,6 +212,7 @@ export default function ImovelForm() {
       const { data } = await api.get(`/properties/${id}`);
 
       setForm({
+        proprietarioId: data.proprietarioId ?? data.proprietario?.id ?? null,
         titulo: data.titulo ?? "",
         descricao: data.descricao ?? "",
 
@@ -236,6 +240,7 @@ export default function ImovelForm() {
         destaque: Boolean(data.destaque),
         publicado: Boolean(data.publicado),
       });
+      setSelectedOwner(data.proprietario || null);
     } catch {
       toast.error("Erro ao carregar imóvel.");
       navigate("/imoveis");
@@ -251,6 +256,7 @@ export default function ImovelForm() {
 
   function montarPayload() {
     return {
+      proprietarioId: form.proprietarioId,
       titulo: form.titulo,
       descricao: form.descricao,
 
@@ -297,6 +303,7 @@ export default function ImovelForm() {
   function validarFormulario() {
     const nextErrors = {};
     const requiredFields = {
+      proprietarioId: "Selecione o proprietário.",
       titulo: "Informe o título.",
       endereco: "Informe a rua.",
       bairro: "Informe o bairro.",
@@ -395,6 +402,28 @@ navigate(`/imoveis/${data.id}`);
           Dados do imóvel
         </Typography>
 <Grid container spacing={2}>
+          <Grid size={{ xs: 12 }}>
+            <Typography variant="h6" sx={{ mb: 1 }}>
+              Proprietário
+            </Typography>
+            <PropertyOwnerSelector
+              owner={selectedOwner}
+              onChange={(owner) => {
+                setSelectedOwner(owner);
+                setForm((current) => ({
+                  ...current,
+                  proprietarioId: owner?.id ?? null,
+                }));
+                setErrors((current) => ({
+                  ...current,
+                  proprietarioId: undefined,
+                }));
+              }}
+              error={Boolean(errors.proprietarioId)}
+              helperText={errors.proprietarioId}
+            />
+          </Grid>
+
               <Grid item xs={12}>
             <Input
               label="Título"

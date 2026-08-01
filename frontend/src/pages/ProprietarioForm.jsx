@@ -1,26 +1,24 @@
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import {
-  Box, FormControlLabel, Grid, IconButton, Stack, Switch, Typography,
+  Box, CircularProgress, Grid, InputAdornment, Stack, Typography,
 } from "@mui/material";
-import { Add, ArrowBack, DeleteOutlined, SaveOutlined } from "@mui/icons-material";
+import { ArrowBack, SaveOutlined } from "@mui/icons-material";
 import MainLayout from "../components/layout/MainLayout";
 import Button from "../components/ui/Button";
 import Card from "../components/ui/Card";
 import Input from "../components/ui/Input";
 import Loading from "../components/ui/Loading";
-import Select from "../components/ui/Select";
 import { useToast } from "../components/ui/Toast";
 import api from "../api/axios";
-import { STATUS_CLIENTE, TIPOS_PESSOA } from "../utils/clientes";
+import { buscarCep, formatCep } from "../utils/cep";
+import { formatCnpj, formatCpf, formatPhone } from "../utils/clientes";
+import { isValidCnpj, isValidCpf } from "../utils/validators";
 
 const emptyForm = {
-  tipoPessoa: "PF", status: "CLIENTE", nome: "", razaoSocial: "", nomeFantasia: "",
-  cpfCnpj: "", email: "", telefone: "", whatsapp: "", endereco: "", cidade: "", estado: "",
-  notas: "", origem: "", corretorId: "",
-};
-const emptyBank = {
-  banco: "", agencia: "", conta: "", tipoConta: "CORRENTE", pix: "", titular: "", documentoTitular: "", principal: true,
+  nome: "", cpf: "", cnpj: "", rg: "", email: "", telefone: "", celular: "",
+  whatsapp: "", cep: "", rua: "", numero: "", complemento: "", bairro: "",
+  cidade: "", estado: "", observacoes: "",
 };
 
 export default function ProprietarioForm() {
@@ -29,54 +27,43 @@ export default function ProprietarioForm() {
   const navigate = useNavigate();
   const toast = useToast();
   const [form, setForm] = useState(emptyForm);
-  const [contas, setContas] = useState([{ ...emptyBank }]);
-  const [options, setOptions] = useState({ corretores: [], tiposConta: [] });
   const [loading, setLoading] = useState(editing);
   const [saving, setSaving] = useState(false);
+  const [cepLoading, setCepLoading] = useState(false);
+  const [errors, setErrors] = useState({});
 
   const load = useCallback(async () => {
+    if (!editing) {
+      setLoading(false);
+      return;
+    }
     try {
-      const requests = [api.get("/proprietarios/opcoes")];
-      if (editing) requests.push(api.get(`/proprietarios/${id}`));
-      const [opts, detail] = await Promise.all(requests);
-      setOptions(opts.data);
-      if (detail) {
-        if (detail.data.ativo === false) {
+      const { data } = await api.get(`/proprietarios/${id}`);
+      if (data) {
+        if (data.ativo === false) {
           toast.error("Reative antes de editar.");
           navigate(`/proprietarios/${id}`);
           return;
         }
-        const data = detail.data;
         setForm({
           ...emptyForm,
-          tipoPessoa: data.tipoPessoa || "PF",
-          status: data.status || "CLIENTE",
           nome: data.nome || "",
-          razaoSocial: data.razaoSocial || "",
-          nomeFantasia: data.nomeFantasia || "",
-          cpfCnpj: data.cpfCnpj || "",
+          cpf: formatCpf(data.cpf || ""),
+          cnpj: formatCnpj(data.cnpj || ""),
+          rg: data.rg || "",
           email: data.email || "",
-          telefone: data.telefone || "",
-          whatsapp: data.whatsapp || "",
-          endereco: data.endereco || "",
+          telefone: formatPhone(data.telefone || ""),
+          celular: formatPhone(data.celular || ""),
+          whatsapp: formatPhone(data.whatsapp || ""),
+          cep: formatCep(data.cep || ""),
+          rua: data.rua || "",
+          numero: data.numero || "",
+          complemento: data.complemento || "",
+          bairro: data.bairro || "",
           cidade: data.cidade || "",
           estado: data.estado || "",
-          notas: data.notas || "",
-          origem: data.origem || "",
-          corretorId: data.corretorId || "",
+          observacoes: data.observacoes || "",
         });
-        setContas(data.dadosBancarios?.length
-          ? data.dadosBancarios.map((item) => ({
-            banco: item.banco || "",
-            agencia: item.agencia || "",
-            conta: item.conta || "",
-            tipoConta: item.tipoConta || "CORRENTE",
-            pix: item.pix || "",
-            titular: item.titular || "",
-            documentoTitular: item.documentoTitular || "",
-            principal: item.principal,
-          }))
-          : [{ ...emptyBank }]);
       }
     } catch (error) {
       toast.error(error.response?.data?.erro || "Erro ao carregar formulário.");
@@ -88,41 +75,39 @@ export default function ProprietarioForm() {
 
   useEffect(() => { load(); }, [load]);
 
-  const update = (field, value) => setForm((current) => ({ ...current, [field]: value }));
+  const update = (field, value) => {
+    setForm((current) => ({ ...current, [field]: value }));
+    setErrors((current) => ({ ...current, [field]: undefined }));
+  };
 
   const save = async () => {
-    if (!form.nome.trim()) {
-      toast.error("Informe o nome.");
+    const nextErrors = {};
+    if (!form.nome.trim()) nextErrors.nome = "Informe o nome.";
+    if (form.cpf && !isValidCpf(form.cpf)) nextErrors.cpf = "CPF inválido.";
+    if (form.cnpj && !isValidCnpj(form.cnpj)) nextErrors.cnpj = "CNPJ inválido.";
+    if (form.cep && form.cep.replace(/\D/g, "").length !== 8) nextErrors.cep = "CEP inválido.";
+    if (form.estado && form.estado.length !== 2) nextErrors.estado = "Informe a UF.";
+    setErrors(nextErrors);
+    if (Object.keys(nextErrors).length) {
+      toast.error("Revise os campos destacados.");
       return;
     }
     setSaving(true);
     try {
       const payload = {
         ...form,
-        corretorId: form.corretorId ? Number(form.corretorId) : null,
-        cpfCnpj: form.cpfCnpj.replace(/\D/g, ""),
+        cpf: form.cpf.replace(/\D/g, "") || null,
+        cnpj: form.cnpj.replace(/\D/g, "") || null,
+        telefone: form.telefone.replace(/\D/g, "") || null,
+        celular: form.celular.replace(/\D/g, "") || null,
+        whatsapp: form.whatsapp.replace(/\D/g, "") || null,
+        cep: form.cep.replace(/\D/g, "") || null,
         estado: form.estado.toUpperCase(),
       };
       const response = editing
         ? await api.put(`/proprietarios/${id}`, payload)
         : await api.post("/proprietarios", payload);
       const proprietarioId = response.data.id;
-      await api.put(`/proprietarios/${proprietarioId}/dados-bancarios`, {
-        contas: contas.filter((item) => item.banco.trim()),
-      });
-      await api.put(`/clientes/${proprietarioId}/contatos`, {
-        telefones: form.telefone ? [{ numero: form.telefone, tipo: "CELULAR", principal: true }] : [],
-        emails: form.email ? [{ email: form.email, tipo: "OUTRO", principal: true }] : [],
-        enderecos: form.endereco && form.cidade && form.estado
-          ? [{
-            tipo: "RESIDENCIAL",
-            logradouro: form.endereco,
-            cidade: form.cidade,
-            estado: form.estado,
-            principal: true,
-          }]
-          : [],
-      });
       toast.success(editing ? "Proprietário atualizado." : "Proprietário cadastrado.");
       navigate(`/proprietarios/${proprietarioId}`);
     } catch (error) {
@@ -134,9 +119,32 @@ export default function ProprietarioForm() {
 
   if (loading) return <MainLayout title="Proprietário"><Loading variant="skeleton" rows={8} /></MainLayout>;
 
-  const tiposConta = (options.tiposConta || ["CORRENTE", "POUPANCA", "PAGAMENTO"]).map((item) => (
-    typeof item === "string" ? { value: item, label: item } : item
-  ));
+  const handleCep = async (value) => {
+    const formatted = formatCep(value);
+    update("cep", formatted);
+    const cep = formatted.replace(/\D/g, "");
+    if (cep.length !== 8) return;
+    setCepLoading(true);
+    try {
+      const address = await buscarCep(cep);
+      if (!address) {
+        setErrors((current) => ({ ...current, cep: "CEP não encontrado." }));
+        return;
+      }
+      setForm((current) => ({
+        ...current,
+        cep: formatCep(address.cep),
+        rua: address.endereco || current.rua,
+        bairro: address.bairro || current.bairro,
+        cidade: address.cidade || current.cidade,
+        estado: address.estado || current.estado,
+      }));
+    } catch {
+      toast.error("Não foi possível consultar o CEP. Preencha manualmente.");
+    } finally {
+      setCepLoading(false);
+    }
+  };
 
   return (
     <MainLayout title={editing ? "Editar proprietário" : "Novo proprietário"}>
@@ -154,55 +162,29 @@ export default function ProprietarioForm() {
         <Card>
           <Typography variant="h6" fontWeight={800} sx={{ mb: 2 }}>Dados cadastrais</Typography>
           <Grid container spacing={2}>
-            <Grid size={{ xs: 12, md: 4 }}><Select label="Pessoa" value={form.tipoPessoa} options={TIPOS_PESSOA} onChange={(event) => update("tipoPessoa", event.target.value)} /></Grid>
-            <Grid size={{ xs: 12, md: 4 }}><Select label="Status" value={form.status} options={STATUS_CLIENTE} onChange={(event) => update("status", event.target.value)} /></Grid>
-            <Grid size={{ xs: 12, md: 4 }}><Select label="Corretor" value={form.corretorId} options={[{ value: "", label: "Selecionar" }, ...(options.corretores || []).map((item) => ({ value: item.id, label: item.nome }))]} onChange={(event) => update("corretorId", event.target.value)} /></Grid>
-            <Grid size={{ xs: 12, md: 6 }}><Input label="Nome" value={form.nome} onChange={(event) => update("nome", event.target.value)} required /></Grid>
-            <Grid size={{ xs: 12, md: 6 }}><Input label="CPF/CNPJ" value={form.cpfCnpj} onChange={(event) => update("cpfCnpj", event.target.value)} /></Grid>
-            {form.tipoPessoa === "PJ" && (
-              <>
-                <Grid size={{ xs: 12, md: 6 }}><Input label="Razão social" value={form.razaoSocial} onChange={(event) => update("razaoSocial", event.target.value)} /></Grid>
-                <Grid size={{ xs: 12, md: 6 }}><Input label="Nome fantasia" value={form.nomeFantasia} onChange={(event) => update("nomeFantasia", event.target.value)} /></Grid>
-              </>
-            )}
-            <Grid size={{ xs: 12, md: 4 }}><Input label="E-mail" value={form.email} onChange={(event) => update("email", event.target.value)} /></Grid>
-            <Grid size={{ xs: 12, md: 4 }}><Input label="Telefone" value={form.telefone} onChange={(event) => update("telefone", event.target.value)} /></Grid>
-            <Grid size={{ xs: 12, md: 4 }}><Input label="WhatsApp" value={form.whatsapp} onChange={(event) => update("whatsapp", event.target.value)} /></Grid>
-            <Grid size={{ xs: 12, md: 6 }}><Input label="Endereço" value={form.endereco} onChange={(event) => update("endereco", event.target.value)} /></Grid>
-            <Grid size={{ xs: 12, md: 3 }}><Input label="Cidade" value={form.cidade} onChange={(event) => update("cidade", event.target.value)} /></Grid>
-            <Grid size={{ xs: 12, md: 3 }}><Input label="UF" value={form.estado} onChange={(event) => update("estado", event.target.value)} slotProps={{ htmlInput: { maxLength: 2 } }} /></Grid>
-            <Grid size={{ xs: 12 }}><Input multiline rows={3} label="Observações" value={form.notas} onChange={(event) => update("notas", event.target.value)} /></Grid>
+            <Grid size={{ xs: 12 }}><Input label="Nome" value={form.nome} onChange={(event) => update("nome", event.target.value)} required error={Boolean(errors.nome)} helperText={errors.nome} /></Grid>
+            <Grid size={{ xs: 12, md: 4 }}><Input label="CPF" value={form.cpf} onChange={(event) => update("cpf", formatCpf(event.target.value))} error={Boolean(errors.cpf)} helperText={errors.cpf} /></Grid>
+            <Grid size={{ xs: 12, md: 4 }}><Input label="CNPJ" value={form.cnpj} onChange={(event) => update("cnpj", formatCnpj(event.target.value))} error={Boolean(errors.cnpj)} helperText={errors.cnpj} /></Grid>
+            <Grid size={{ xs: 12, md: 4 }}><Input label="RG" value={form.rg} onChange={(event) => update("rg", event.target.value)} /></Grid>
+            <Grid size={{ xs: 12, md: 4 }}><Input label="Telefone" value={form.telefone} onChange={(event) => update("telefone", formatPhone(event.target.value))} /></Grid>
+            <Grid size={{ xs: 12, md: 4 }}><Input label="Celular" value={form.celular} onChange={(event) => update("celular", formatPhone(event.target.value))} /></Grid>
+            <Grid size={{ xs: 12, md: 4 }}><Input label="WhatsApp" value={form.whatsapp} onChange={(event) => update("whatsapp", formatPhone(event.target.value))} /></Grid>
+            <Grid size={{ xs: 12 }}><Input type="email" label="E-mail" value={form.email} onChange={(event) => update("email", event.target.value)} /></Grid>
           </Grid>
         </Card>
 
         <Card>
-          <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
-            <Typography variant="h6" fontWeight={800}>Dados bancários</Typography>
-            <Button startIcon={<Add />} onClick={() => setContas((current) => [...current, { ...emptyBank, principal: false }])}>Adicionar</Button>
-          </Stack>
-          <Stack spacing={2}>
-            {contas.map((item, index) => (
-              <Box key={`bank-${index}`} sx={{ p: 2, border: 1, borderColor: "divider", borderRadius: 2 }}>
-                <Grid container spacing={2} alignItems="center">
-                  <Grid size={{ xs: 12, md: 4 }}><Input label="Banco" value={item.banco} onChange={(event) => setContas((current) => current.map((row, i) => (i === index ? { ...row, banco: event.target.value } : row)))} /></Grid>
-                  <Grid size={{ xs: 6, md: 2 }}><Input label="Agência" value={item.agencia} onChange={(event) => setContas((current) => current.map((row, i) => (i === index ? { ...row, agencia: event.target.value } : row)))} /></Grid>
-                  <Grid size={{ xs: 6, md: 2 }}><Input label="Conta" value={item.conta} onChange={(event) => setContas((current) => current.map((row, i) => (i === index ? { ...row, conta: event.target.value } : row)))} /></Grid>
-                  <Grid size={{ xs: 12, md: 2 }}><Select label="Tipo" value={item.tipoConta} options={tiposConta} onChange={(event) => setContas((current) => current.map((row, i) => (i === index ? { ...row, tipoConta: event.target.value } : row)))} /></Grid>
-                  <Grid size={{ xs: 12, md: 4 }}><Input label="PIX" value={item.pix} onChange={(event) => setContas((current) => current.map((row, i) => (i === index ? { ...row, pix: event.target.value } : row)))} /></Grid>
-                  <Grid size={{ xs: 12, md: 4 }}><Input label="Titular" value={item.titular} onChange={(event) => setContas((current) => current.map((row, i) => (i === index ? { ...row, titular: event.target.value } : row)))} /></Grid>
-                  <Grid size={{ xs: 8, md: 3 }}>
-                    <FormControlLabel
-                      control={<Switch checked={item.principal} onChange={(event) => setContas((current) => current.map((row, i) => ({ ...row, principal: i === index ? event.target.checked : false })))} />}
-                      label="Principal"
-                    />
-                  </Grid>
-                  <Grid size={{ xs: 4, md: 1 }}>
-                    <IconButton color="error" disabled={contas.length === 1} onClick={() => setContas((current) => current.filter((_, i) => i !== index))}><DeleteOutlined /></IconButton>
-                  </Grid>
-                </Grid>
-              </Box>
-            ))}
-          </Stack>
+          <Typography variant="h6" fontWeight={800} sx={{ mb: 2 }}>Endereço</Typography>
+          <Grid container spacing={2}>
+            <Grid size={{ xs: 12, md: 3 }}><Input label="CEP" value={form.cep} onChange={(event) => handleCep(event.target.value)} error={Boolean(errors.cep)} helperText={errors.cep} InputProps={{ endAdornment: cepLoading ? <InputAdornment position="end"><CircularProgress size={18} /></InputAdornment> : null }} /></Grid>
+            <Grid size={{ xs: 12, md: 7 }}><Input label="Rua" value={form.rua} onChange={(event) => update("rua", event.target.value)} /></Grid>
+            <Grid size={{ xs: 12, md: 2 }}><Input label="Número" value={form.numero} onChange={(event) => update("numero", event.target.value)} /></Grid>
+            <Grid size={{ xs: 12, md: 4 }}><Input label="Complemento" value={form.complemento} onChange={(event) => update("complemento", event.target.value)} /></Grid>
+            <Grid size={{ xs: 12, md: 3 }}><Input label="Bairro" value={form.bairro} onChange={(event) => update("bairro", event.target.value)} /></Grid>
+            <Grid size={{ xs: 12, md: 3 }}><Input label="Cidade" value={form.cidade} onChange={(event) => update("cidade", event.target.value)} /></Grid>
+            <Grid size={{ xs: 12, md: 2 }}><Input label="UF" value={form.estado} onChange={(event) => update("estado", event.target.value.replace(/[^a-z]/gi, "").slice(0, 2).toUpperCase())} error={Boolean(errors.estado)} helperText={errors.estado} /></Grid>
+            <Grid size={{ xs: 12 }}><Input multiline rows={3} label="Observações" value={form.observacoes} onChange={(event) => update("observacoes", event.target.value)} /></Grid>
+          </Grid>
         </Card>
       </Stack>
     </MainLayout>

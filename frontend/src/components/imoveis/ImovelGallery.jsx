@@ -26,7 +26,6 @@ import {
 import {
   AddPhotoAlternateOutlined,
   CancelOutlined,
-  CheckCircleOutline,
   CloudUploadOutlined,
   DragIndicator,
   DeleteOutlined,
@@ -107,7 +106,7 @@ function SortableThumb({
 const STATUS_DETAILS = {
   pending: { label: "Pronto para enviar", color: "default", icon: null },
   uploading: { label: "Uploadando...", color: "info", icon: <CircularProgress size={13} color="inherit" /> },
-  completed: { label: "Concluído", color: "success", icon: <CheckCircleOutline /> },
+  completed: { label: "Concluído", color: "success", icon: <Box component="span">✓</Box> },
   error: { label: "Erro", color: "error", icon: <ErrorOutline /> },
   canceled: { label: "Cancelado", color: "default", icon: <CancelOutlined /> },
 };

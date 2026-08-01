@@ -58,6 +58,7 @@ model Empresa {
 
   usuarios       Usuario[]
   properties     Property[]
+  propertyOwners PropertyOwner[]
   leads          Lead[]
   pipelineStages PipelineStage[]
 
@@ -111,12 +112,14 @@ model Property {
   ativo          Boolean          @default(true)
   slug           String?
   empresaId      Int
+  proprietarioId Int?
   createdAt      DateTime         @default(now())
   updatedAt      DateTime         @updatedAt
 
-  empresa Empresa @relation(fields: [empresaId], references: [id], onDelete: Cascade)
-  images  PropertyImage[]
-  leads   Lead[]
+  empresa      Empresa        @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+  proprietario PropertyOwner? @relation(fields: [proprietarioId], references: [id], onDelete: SetNull)
+  images       PropertyImage[]
+  leads        Lead[]
 
   @@unique([empresaId, codigo])
   @@unique([empresaId, slug])
@@ -125,9 +128,43 @@ model Property {
   @@index([empresaId, bairro])
   @@index([empresaId, tipo])
   @@index([empresaId, finalidade])
+  @@index([empresaId, proprietarioId])
   @@index([empresaId, publicado, ativo])
   @@index([empresaId, destaque, createdAt])
   @@map("properties")
+}
+
+model PropertyOwner {
+  id          Int      @id @default(autoincrement())
+  empresaId   Int
+  nome        String
+  cpf         String?
+  cnpj        String?
+  rg          String?
+  telefone    String?
+  celular     String?
+  whatsapp    String?
+  email       String?
+  cep         String?
+  rua         String?
+  numero      String?
+  complemento String?
+  bairro      String?
+  cidade      String?
+  estado      String?  @db.Char(2)
+  observacoes String?
+  ativo       Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  empresa    Empresa    @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+  properties Property[]
+
+  @@unique([empresaId, cpf])
+  @@unique([empresaId, cnpj])
+  @@index([empresaId, ativo, nome])
+  @@index([empresaId, cidade])
+  @@map("property_owners")
 }
 
 model PropertyImage {
