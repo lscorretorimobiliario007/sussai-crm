@@ -4,6 +4,6 @@ node_modules
 
 /generated/prisma
 
-# Uploads de imagens (arquivos no disco)
+# Uploads de imagens (arquivos no disco.
 /uploads/properties/**
 !/uploads/properties/.gitkeep
