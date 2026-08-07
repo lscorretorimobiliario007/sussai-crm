@@ -1,26 +1,33 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateUploadDto } from './dto/create-upload.dto';
 import { UpdateUploadDto } from './dto/update-upload.dto';
 
 @Injectable()
 export class UploadsService {
   create(createUploadDto: CreateUploadDto) {
-    return 'This action adds a new upload';
+    return {
+      message: 'Use /properties/:id/images or /documentos for uploads',
+      received: createUploadDto,
+    };
   }
 
   findAll() {
-    return `This action returns all uploads`;
+    return { data: [], meta: { total: 0 } };
   }
 
   findOne(id: number) {
-    return `This action returns a #${id} upload`;
+    throw new NotFoundException(`Upload #${id} não encontrado`);
   }
 
   update(id: number, updateUploadDto: UpdateUploadDto) {
-    return `This action updates a #${id} upload`;
+    return {
+      id,
+      message: 'Upload genérico não é editável por este endpoint',
+      received: updateUploadDto,
+    };
   }
 
   remove(id: number) {
-    return `This action removes a #${id} upload`;
+    return { id, removed: true };
   }
 }

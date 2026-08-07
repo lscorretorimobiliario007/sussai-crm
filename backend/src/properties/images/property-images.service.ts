@@ -51,10 +51,11 @@ export class PropertyImagesService {
       const images: PropertyImage[] = [];
 
       for (const [index, file] of files.entries()) {
-        const relativePath = join('properties', String(propertyId), file.filename).replace(
-          /\\/g,
-          '/',
-        );
+        const relativePath = join(
+          'properties',
+          String(propertyId),
+          file.filename,
+        ).replace(/\\/g, '/');
 
         const image = await tx.propertyImage.create({
           data: {
@@ -187,15 +188,17 @@ export class PropertyImagesService {
     });
 
     if (existing.length === 0) {
-      throw new BadRequestException('Este imóvel não possui imagens para ordenar');
+      throw new BadRequestException(
+        'Este imóvel não possui imagens para ordenar',
+      );
     }
 
     const existingIds = existing.map((item) => item.id).sort((a, b) => a - b);
     const incomingIds = [...imageIds].sort((a, b) => a - b);
 
     if (
-      existingIds.length !== incomingIds.length
-      || existingIds.some((id, index) => id !== incomingIds[index])
+      existingIds.length !== incomingIds.length ||
+      existingIds.some((id, index) => id !== incomingIds[index])
     ) {
       throw new BadRequestException(
         'Envie todos os IDs das imagens do imóvel, sem duplicar ou omitir',
@@ -239,7 +242,10 @@ export class PropertyImagesService {
   }
 
   private buildPublicUrl(filePath: string): string {
-    const normalized = filePath.replace(/\\/g, '/').replace(/^\/+/, '');
+    let normalized = filePath.replace(/\\/g, '/').replace(/^\/+/, '');
+    if (normalized.startsWith('uploads/')) {
+      normalized = normalized.slice('uploads/'.length);
+    }
     const relative = `/uploads/${normalized}`;
     const base = (process.env.PUBLIC_BASE_URL || '').replace(/\/+$/, '');
     return base ? `${base}${relative}` : relative;

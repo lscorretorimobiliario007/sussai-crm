@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Badge,
   Box,
@@ -10,6 +10,8 @@ import {
   Pagination,
   Stack,
   Switch,
+  Tab,
+  Tabs,
   Typography,
 } from "@mui/material";
 import {
@@ -23,12 +25,6 @@ import {
   TodayOutlined,
   ViewAgendaOutlined,
 } from "@mui/icons-material";
-import FullCalendar from "@fullcalendar/react";
-import dayGridPlugin from "@fullcalendar/daygrid";
-import timeGridPlugin from "@fullcalendar/timegrid";
-import listPlugin from "@fullcalendar/list";
-import interactionPlugin from "@fullcalendar/interaction";
-import ptBrLocale from "@fullcalendar/core/locales/pt-br";
 import MainLayout from "../components/layout/MainLayout";
 import Button from "../components/ui/Button";
 import Card from "../components/ui/Card";
@@ -47,14 +43,12 @@ import {
   REPETICOES_EVENTO,
   STATUS_EVENTO,
   TIPOS_EVENTO,
-  eventToCalendar,
   optionLabel,
   statusMeta,
   tipoMeta,
   toIsoFromLocal,
   toLocalInputValue,
 } from "../utils/agenda";
-import "../components/agenda/agendaCalendar.css";
 
 const emptyForm = {
   titulo: "",
@@ -82,20 +76,41 @@ const initialFilters = {
   imovelId: "",
 };
 
-function defaultRange() {
-  const start = new Date();
-  start.setDate(1);
+const VIEW_TABS = [
+  { id: "lista", label: "Lista" },
+  { id: "hoje", label: "Hoje" },
+  { id: "semana", label: "Semana" },
+];
+
+function rangeForView(view) {
+  const now = new Date();
+  if (view === "hoje") {
+    const start = new Date(now);
+    start.setHours(0, 0, 0, 0);
+    const end = new Date(now);
+    end.setHours(23, 59, 59, 999);
+    return { start, end };
+  }
+  if (view === "semana") {
+    const start = new Date(now);
+    start.setHours(0, 0, 0, 0);
+    const end = new Date(start);
+    end.setDate(end.getDate() + 7);
+    end.setHours(23, 59, 59, 999);
+    return { start, end };
+  }
+  const start = new Date(now);
+  start.setMonth(start.getMonth() - 1);
   start.setHours(0, 0, 0, 0);
-  const end = new Date(start);
+  const end = new Date(now);
   end.setMonth(end.getMonth() + 2);
+  end.setHours(23, 59, 59, 999);
   return { start, end };
 }
 
 export default function Agenda() {
   const toast = useToast();
-  const calendarRef = useRef(null);
-  const [viewMode, setViewMode] = useState("dayGridMonth");
-  const [events, setEvents] = useState([]);
+  const [viewMode, setViewMode] = useState("lista");
   const [listEvents, setListEvents] = useState([]);
   const [listMeta, setListMeta] = useState({ page: 1, totalPages: 1, total: 0 });
   const [listPage, setListPage] = useState(1);
@@ -110,7 +125,7 @@ export default function Agenda() {
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
-  const [range, setRange] = useState(defaultRange);
+  const [range, setRange] = useState(() => rangeForView("lista"));
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [formOpen, setFormOpen] = useState(false);
@@ -119,7 +134,6 @@ export default function Agenda() {
   const [selected, setSelected] = useState(null);
   const [confirm, setConfirm] = useState(null);
   const [busy, setBusy] = useState(false);
-  const [showList, setShowList] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
 
   useEffect(() => {
@@ -174,26 +188,8 @@ export default function Agenda() {
     return params;
   }, [debouncedSearch, filters]);
 
-  const loadCalendar = useCallback(async () => {
-    setLoading(true);
-    try {
-      const response = await api.get("/agenda", {
-        params: buildParams({
-          inicio: range.start.toISOString(),
-          fim: range.end.toISOString(),
-          limit: 500,
-          modo: "calendario",
-        }),
-      });
-      setEvents((response.data.data || []).map(eventToCalendar));
-    } catch (error) {
-      toast.error(error.response?.data?.erro || "Erro ao carregar agenda.");
-    } finally {
-      setLoading(false);
-    }
-  }, [buildParams, range.end, range.start, toast]);
-
   const loadList = useCallback(async () => {
+    setLoading(true);
     try {
       const response = await api.get("/agenda", {
         params: buildParams({
@@ -208,22 +204,33 @@ export default function Agenda() {
       setListMeta(response.data.meta || { page: 1, totalPages: 1, total: 0 });
     } catch (error) {
       toast.error(error.response?.data?.erro || "Erro ao carregar lista.");
+    } finally {
+      setLoading(false);
     }
   }, [buildParams, listPage, range.end, range.start, toast]);
 
   useEffect(() => {
-    loadCalendar();
+    loadList();
+  }, [loadList]);
+
+  useEffect(() => {
     loadDashboard();
     loadTimeline();
     loadNotifications();
-  }, [loadCalendar, loadDashboard, loadNotifications, loadTimeline]);
+  }, [loadDashboard, loadNotifications, loadTimeline]);
 
-  useEffect(() => {
-    if (showList) loadList();
-  }, [loadList, showList]);
+  const refreshAll = useCallback(async () => {
+    await Promise.all([loadList(), loadDashboard(), loadTimeline()]);
+  }, [loadDashboard, loadList, loadTimeline]);
 
   const updateFilter = (field, value) => {
     setFilters((current) => ({ ...current, [field]: value }));
+    setListPage(1);
+  };
+
+  const changeView = (view) => {
+    setViewMode(view);
+    setRange(rangeForView(view));
     setListPage(1);
   };
 
@@ -231,6 +238,7 @@ export default function Agenda() {
     const startDate = start ? new Date(start) : new Date();
     const endDate = end ? new Date(end) : new Date(startDate.getTime() + 60 * 60 * 1000);
     setEditingId(null);
+    setSelected(null);
     setForm({
       ...emptyForm,
       dataInicio: toLocalInputValue(startDate),
@@ -298,39 +306,11 @@ export default function Agenda() {
         toast.success("Compromisso criado.");
       }
       setFormOpen(false);
-      await Promise.all([loadCalendar(), loadDashboard(), loadTimeline(), showList ? loadList() : null]);
+      await refreshAll();
     } catch (error) {
       toast.error(error.response?.data?.erro || "Erro ao salvar compromisso.");
     } finally {
       setSaving(false);
-    }
-  };
-
-  const onEventDrop = async (info) => {
-    try {
-      await api.patch(`/agenda/${info.event.id}/reagendar`, {
-        dataInicio: info.event.start?.toISOString(),
-        dataFim: (info.event.end || info.event.start)?.toISOString(),
-      });
-      toast.success("Compromisso reagendado.");
-      loadDashboard();
-      loadTimeline();
-    } catch (error) {
-      info.revert();
-      toast.error(error.response?.data?.erro || "Não foi possível reagendar.");
-    }
-  };
-
-  const onEventResize = async (info) => {
-    try {
-      await api.patch(`/agenda/${info.event.id}/reagendar`, {
-        dataInicio: info.event.start?.toISOString(),
-        dataFim: info.event.end?.toISOString(),
-      });
-      toast.success("Duração atualizada.");
-    } catch (error) {
-      info.revert();
-      toast.error(error.response?.data?.erro || "Não foi possível alterar a duração.");
     }
   };
 
@@ -349,7 +329,7 @@ export default function Agenda() {
       }
       setConfirm(null);
       setFormOpen(false);
-      await Promise.all([loadCalendar(), loadDashboard(), loadTimeline(), showList ? loadList() : null]);
+      await refreshAll();
     } catch (error) {
       toast.error(error.response?.data?.erro || "Não foi possível concluir a ação.");
     } finally {
@@ -375,18 +355,26 @@ export default function Agenda() {
     }
   };
 
-  const changeView = (view) => {
-    setViewMode(view);
-    setShowList(view === "lista");
-    const apiCalendar = calendarRef.current?.getApi?.();
-    if (view !== "lista" && apiCalendar) apiCalendar.changeView(view);
-  };
-
   const activeFilterCount = useMemo(() => (
     Object.values(filters).filter(Boolean).length
   ), [filters]);
 
   const resumo = dashboard?.resumo;
+
+  const emptyCopy = {
+    lista: {
+      title: "Nenhum compromisso na lista",
+      description: "Crie um compromisso ou ajuste os filtros.",
+    },
+    hoje: {
+      title: "Nada para hoje",
+      description: "Não há compromissos agendados para o dia de hoje.",
+    },
+    semana: {
+      title: "Semana livre",
+      description: "Não há compromissos nos próximos 7 dias.",
+    },
+  }[viewMode];
 
   return (
     <MainLayout title="Agenda">
@@ -395,7 +383,7 @@ export default function Agenda() {
           <Box>
             <Typography variant="h5" fontWeight={850}>Agenda comercial</Typography>
             <Typography color="text.secondary">
-              Visitas, reuniões, ligações e tarefas com reagendamento por arrastar.
+              Visitas, reuniões, ligações e tarefas em lista, hoje e na semana.
             </Typography>
           </Box>
           <Stack direction="row" spacing={1.25} flexWrap="wrap" useFlexGap>
@@ -437,7 +425,7 @@ export default function Agenda() {
         </Grid>
 
         <Card contentSx={{ p: { xs: 2, md: 2.25 } }}>
-          <Stack direction={{ xs: "column", md: "row" }} spacing={1.5}>
+          <Stack direction={{ xs: "column", md: "row" }} spacing={1.5} alignItems={{ md: "center" }}>
             <Input
               size="small"
               placeholder="Pesquisar por título, descrição ou local"
@@ -446,22 +434,18 @@ export default function Agenda() {
               slotProps={{ input: { startAdornment: <InputAdornment position="start"><Search /></InputAdornment> } }}
               sx={{ flex: 1 }}
             />
-            <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
-              {[
-                { id: "dayGridMonth", label: "Mês" },
-                { id: "timeGridWeek", label: "Semana" },
-                { id: "timeGridDay", label: "Dia" },
-                { id: "lista", label: "Lista" },
-              ].map((item) => (
-                <Button
-                  key={item.id}
-                  size="small"
-                  variant={viewMode === item.id || (showList && item.id === "lista") ? "contained" : "outlined"}
-                  onClick={() => changeView(item.id)}
-                >
-                  {item.label}
-                </Button>
-              ))}
+            <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap alignItems="center">
+              <Tabs
+                value={viewMode}
+                onChange={(event, value) => changeView(value)}
+                variant="scrollable"
+                allowScrollButtonsMobile
+                sx={{ minHeight: 36, "& .MuiTab-root": { minHeight: 36, py: 0.5 } }}
+              >
+                {VIEW_TABS.map((item) => (
+                  <Tab key={item.id} value={item.id} label={item.label} />
+                ))}
+              </Tabs>
               <Button
                 color={filtersOpen ? "primary" : "inherit"}
                 variant={filtersOpen ? "contained" : "outlined"}
@@ -518,97 +502,68 @@ export default function Agenda() {
         <Grid container spacing={2.5}>
           <Grid size={{ xs: 12, xl: 9 }}>
             <Card contentSx={{ p: { xs: 1.5, md: 2.5 } }}>
-              {loading ? <Loading variant="skeleton" rows={8} /> : showList ? (
-                listEvents.length === 0 ? (
-                  <EmptyState
-                    title="Nenhum compromisso na lista"
-                    description="Crie um compromisso ou ajuste os filtros."
-                    actionLabel="Novo compromisso"
-                    onAction={() => openCreate()}
-                  />
-                ) : (
-                  <Stack spacing={1.5}>
-                    {listEvents.map((evento) => {
-                      const tipo = tipoMeta(evento.tipo);
-                      const status = statusMeta(evento.status);
-                      return (
-                        <Box
-                          key={evento.id}
-                          onClick={() => openEdit(evento)}
-                          sx={{
-                            p: 2,
-                            borderRadius: 2.5,
-                            border: 1,
-                            borderColor: "divider",
-                            cursor: "pointer",
-                            transition: "transform .16s ease, box-shadow .16s ease",
-                            "&:hover": { transform: "translateY(-2px)", boxShadow: 4 },
-                          }}
-                        >
-                          <Stack direction={{ xs: "column", sm: "row" }} justifyContent="space-between" gap={1}>
-                            <Box>
-                              <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap sx={{ mb: 0.75 }}>
-                                <Chip size="small" label={tipo.label} sx={{ bgcolor: tipo.color, color: "#fff", fontWeight: 750 }} />
-                                <Chip size="small" label={status.label} color={status.color} />
-                              </Stack>
-                              <Typography fontWeight={850}>{evento.titulo}</Typography>
-                              <Typography variant="body2" color="text.secondary">
-                                {formatDateTime(evento.dataInicio)} — {formatDateTime(evento.dataFim)}
-                              </Typography>
-                              <Typography variant="body2" color="text.secondary">
-                                {evento.usuario?.nome || "Sem corretor"}
-                                {evento.cliente ? ` · ${evento.cliente.nome}` : ""}
-                                {evento.imovel ? ` · ${evento.imovel.codigo}` : ""}
-                              </Typography>
-                            </Box>
-                            <Stack direction="row" spacing={1}>
-                              {evento.status !== "CONCLUIDO" && evento.status !== "CANCELADO" && (
-                                <Button size="small" onClick={(event) => { event.stopPropagation(); setConfirm({ type: "concluir", id: evento.id }); }}>Concluir</Button>
-                              )}
-                              {evento.status !== "CANCELADO" && (
-                                <Button size="small" color="error" onClick={(event) => { event.stopPropagation(); setConfirm({ type: "cancelar", id: evento.id }); }}>Cancelar</Button>
-                              )}
-                            </Stack>
-                          </Stack>
-                        </Box>
-                      );
-                    })}
-                    {listMeta.totalPages > 1 && (
-                      <Stack alignItems="center" sx={{ pt: 1 }}>
-                        <Pagination page={listPage} count={listMeta.totalPages} color="primary" onChange={(event, value) => setListPage(value)} />
-                      </Stack>
-                    )}
-                  </Stack>
-                )
+              {loading ? (
+                <Loading variant="skeleton" rows={8} />
+              ) : listEvents.length === 0 ? (
+                <EmptyState
+                  title={emptyCopy.title}
+                  description={emptyCopy.description}
+                  actionLabel="Novo compromisso"
+                  onAction={() => openCreate()}
+                />
               ) : (
-                <Box className="sussai-agenda-calendar">
-                  <FullCalendar
-                    ref={calendarRef}
-                    plugins={[dayGridPlugin, timeGridPlugin, listPlugin, interactionPlugin]}
-                    initialView={viewMode === "lista" ? "dayGridMonth" : viewMode}
-                    headerToolbar={{
-                      left: "prev,next today",
-                      center: "title",
-                      right: "",
-                    }}
-                    locale={ptBrLocale}
-                    buttonText={{ today: "Hoje", month: "Mês", week: "Semana", day: "Dia", list: "Lista" }}
-                    height="auto"
-                    editable
-                    droppable
-                    selectable
-                    selectMirror
-                    dayMaxEvents={3}
-                    events={events}
-                    select={(info) => openCreate(info.start, info.end)}
-                    eventClick={(info) => openEdit(info.event)}
-                    eventDrop={onEventDrop}
-                    eventResize={onEventResize}
-                    datesSet={(info) => {
-                      setRange({ start: info.start, end: info.end });
-                    }}
-                  />
-                </Box>
+                <Stack spacing={1.5}>
+                  {listEvents.map((evento) => {
+                    const tipo = tipoMeta(evento.tipo);
+                    const status = statusMeta(evento.status);
+                    return (
+                      <Box
+                        key={evento.id}
+                        onClick={() => openEdit(evento)}
+                        sx={{
+                          p: 2,
+                          borderRadius: 2.5,
+                          border: 1,
+                          borderColor: "divider",
+                          cursor: "pointer",
+                          transition: "transform .16s ease, box-shadow .16s ease",
+                          "&:hover": { transform: "translateY(-2px)", boxShadow: 4 },
+                        }}
+                      >
+                        <Stack direction={{ xs: "column", sm: "row" }} justifyContent="space-between" gap={1}>
+                          <Box>
+                            <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap sx={{ mb: 0.75 }}>
+                              <Chip size="small" label={tipo.label} sx={{ bgcolor: tipo.color, color: "#fff", fontWeight: 750 }} />
+                              <Chip size="small" label={status.label} color={status.color} />
+                            </Stack>
+                            <Typography fontWeight={850}>{evento.titulo}</Typography>
+                            <Typography variant="body2" color="text.secondary">
+                              {formatDateTime(evento.dataInicio)} — {formatDateTime(evento.dataFim)}
+                            </Typography>
+                            <Typography variant="body2" color="text.secondary">
+                              {evento.usuario?.nome || "Sem corretor"}
+                              {evento.cliente ? ` · ${evento.cliente.nome}` : ""}
+                              {evento.imovel ? ` · ${evento.imovel.codigo}` : ""}
+                            </Typography>
+                          </Box>
+                          <Stack direction="row" spacing={1}>
+                            {evento.status !== "CONCLUIDO" && evento.status !== "CANCELADO" && (
+                              <Button size="small" onClick={(event) => { event.stopPropagation(); setConfirm({ type: "concluir", id: evento.id }); }}>Concluir</Button>
+                            )}
+                            {evento.status !== "CANCELADO" && (
+                              <Button size="small" color="error" onClick={(event) => { event.stopPropagation(); setConfirm({ type: "cancelar", id: evento.id }); }}>Cancelar</Button>
+                            )}
+                          </Stack>
+                        </Stack>
+                      </Box>
+                    );
+                  })}
+                  {listMeta.totalPages > 1 && (
+                    <Stack alignItems="center" sx={{ pt: 1 }}>
+                      <Pagination page={listPage} count={listMeta.totalPages} color="primary" onChange={(event, value) => setListPage(value)} />
+                    </Stack>
+                  )}
+                </Stack>
               )}
             </Card>
           </Grid>

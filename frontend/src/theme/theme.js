@@ -1,6 +1,6 @@
 import { createTheme } from "@mui/material/styles";
 
-export const designTokens = {
+const designTokens = {
   colors: {
     primary: "#2563eb",
     primaryDark: "#1d4ed8",

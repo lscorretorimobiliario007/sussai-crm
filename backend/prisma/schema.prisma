@@ -7,6 +7,8 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// ─── Existing Nest enums (kept intact) ───────────────────────────────────────
+
 enum UserProfile {
   ADMIN
   GERENTE
@@ -49,18 +51,310 @@ enum LeadStatus {
   PERDIDO
 }
 
-model Empresa {
-  id       Int     @id @default(autoincrement())
-  nome     String
-  cnpj     String  @unique
-  email    String?
-  telefone String?
+// ─── Empresa / Corretor ──────────────────────────────────────────────────────
 
-  usuarios       Usuario[]
-  properties     Property[]
-  propertyOwners PropertyOwner[]
-  leads          Lead[]
-  pipelineStages PipelineStage[]
+enum PlanoEmpresa {
+  STARTER
+  PROFESSIONAL
+  ENTERPRISE
+}
+
+enum StatusCorretor {
+  ATIVO
+  INATIVO
+  FERIAS
+}
+
+enum AcaoHistoricoCorretor {
+  CRIADO
+  ATUALIZADO
+  STATUS_ALTERADO
+  FOTO_ATUALIZADA
+  META_ATUALIZADA
+  EQUIPE_ALTERADA
+}
+
+// ─── Clientes ────────────────────────────────────────────────────────────────
+
+enum TipoCliente {
+  PROPRIETARIO
+  INQUILINO
+  COMPRADOR
+  LEAD
+}
+
+enum TipoPessoa {
+  PF
+  PJ
+}
+
+enum StatusCliente {
+  PROSPECTO
+  QUALIFICADO
+  NEGOCIACAO
+  CLIENTE
+  INATIVO
+  PERDIDO
+}
+
+enum InteresseCliente {
+  COMPRA
+  VENDA
+  LOCACAO
+  ADMINISTRACAO
+}
+
+enum AcaoHistoricoCliente {
+  CRIADO
+  ATUALIZADO
+  DESATIVADO
+  REATIVADO
+  ANOTACAO
+  INTERACAO
+  DOCUMENTO_ADICIONADO
+  DOCUMENTO_REMOVIDO
+  AVATAR_ATUALIZADO
+  FAVORITO_ADICIONADO
+  FAVORITO_REMOVIDO
+  COMPARTILHADO
+  VISITA_REGISTRADA
+  PROPOSTA_REGISTRADA
+}
+
+enum TipoDocumentoCliente {
+  CPF
+  CNPJ
+  RG
+  COMPROVANTE_RESIDENCIA
+  CONTRATO
+  OUTRO
+}
+
+enum TipoInteracaoCliente {
+  LIGACAO
+  EMAIL
+  WHATSAPP
+  VISITA
+  REUNIAO
+  OUTRO
+}
+
+enum StatusVisitaCliente {
+  AGENDADA
+  REALIZADA
+  CANCELADA
+  NAO_COMPARECEU
+}
+
+enum StatusPropostaCliente {
+  RASCUNHO
+  ENVIADA
+  EM_ANALISE
+  ACEITA
+  RECUSADA
+  CANCELADA
+}
+
+// ─── Agenda ──────────────────────────────────────────────────────────────────
+
+enum TipoEventoAgenda {
+  VISITA
+  REUNIAO
+  LIGACAO
+  TAREFA
+}
+
+enum StatusEventoAgenda {
+  AGENDADO
+  CONFIRMADO
+  CONCLUIDO
+  CANCELADO
+}
+
+// ─── Tarefas ─────────────────────────────────────────────────────────────────
+
+enum PrioridadeTarefa {
+  BAIXA
+  MEDIA
+  ALTA
+  URGENTE
+}
+
+enum StatusTarefa {
+  PENDENTE
+  EM_ANDAMENTO
+  CONCLUIDA
+  CANCELADA
+}
+
+// ─── Contratos ───────────────────────────────────────────────────────────────
+
+enum TipoContrato {
+  ALUGUEL
+  VENDA
+  ADMINISTRACAO
+}
+
+enum StatusContrato {
+  RASCUNHO
+  ATIVO
+  ENCERRADO
+  CANCELADO
+}
+
+// ─── Financeiro ──────────────────────────────────────────────────────────────
+
+enum StatusCobranca {
+  PENDENTE
+  PAGO
+  ATRASADO
+  CANCELADO
+}
+
+enum TipoLancamentoFinanceiro {
+  A_RECEBER
+  A_PAGAR
+}
+
+enum StatusLancamentoFinanceiro {
+  ABERTO
+  PARCIAL
+  LIQUIDADO
+  ATRASADO
+  CANCELADO
+}
+
+enum TipoCategoriaFinanceira {
+  RECEITA
+  DESPESA
+}
+
+enum StatusComissao {
+  PREVISTA
+  APROVADA
+  PAGA
+  CANCELADA
+}
+
+enum StatusCaixaDiario {
+  ABERTO
+  FECHADO
+}
+
+enum TipoMovimentoCaixa {
+  ENTRADA
+  SAIDA
+}
+
+enum StatusConciliacao {
+  ABERTA
+  CONCILIADA
+  CANCELADA
+}
+
+enum FormaPagamentoFinanceiro {
+  PIX
+  TED
+  DINHEIRO
+  CARTAO
+  BOLETO
+  CHEQUE
+  OUTRO
+}
+
+// ─── System ──────────────────────────────────────────────────────────────────
+
+enum BackupStatus {
+  PENDENTE
+  EM_ANDAMENTO
+  CONCLUIDO
+  FALHOU
+}
+
+enum SystemLogLevel {
+  DEBUG
+  INFO
+  WARN
+  ERROR
+}
+
+// ═════════════════════════════════════════════════════════════════════════════
+// Existing Nest models (kept intact + relation expansions)
+// ═════════════════════════════════════════════════════════════════════════════
+
+model Empresa {
+  id           Int           @id @default(autoincrement())
+  nome         String
+  cnpj         String        @unique
+  email        String?
+  telefone     String?
+  nomeFantasia String?
+  razaoSocial  String?
+  logoUrl      String?
+  faviconUrl   String?
+  siteUrl      String?
+  creci        String?
+  slogan       String?
+  corPrimaria  String?       @default("#0B1F3A")
+  corSecundaria String?      @default("#C9A227")
+  endereco     String?
+  numero       String?
+  complemento  String?
+  bairro       String?
+  cidade       String?
+  estado       String?
+  cep          String?
+  whatsapp     String?
+  instagram    String?
+  facebook     String?
+  linkedin     String?
+  youtube      String?
+  horarioAtendimento String?
+  googleMapsUrl String?
+  latitude     Float?
+  longitude    Float?
+  siteTitulo   String?
+  siteDescricao String?
+  seoKeywords  String?
+  siteAtivo    Boolean       @default(true)
+  siteExibirCorretores Boolean @default(true)
+  siteExibirBlog Boolean     @default(true)
+  plano        PlanoEmpresa  @default(STARTER)
+  ativo        Boolean       @default(true)
+
+  usuarios              Usuario[]
+  properties            Property[]
+  propertyOwners        PropertyOwner[]
+  leads                 Lead[]
+  pipelineStages        PipelineStage[]
+  clientes              Cliente[]
+  clienteAnotacoes      ClienteAnotacao[]
+  clienteInteracoes     ClienteInteracao[]
+  clienteDocumentos     ClienteDocumento[]
+  clienteFavoritos      ClienteFavorito[]
+  clienteVisitas        ClienteVisita[]
+  clientePropostas      ClienteProposta[]
+  clienteHistoricos     ClienteHistorico[]
+  eventosAgenda         EventoAgenda[]
+  agendaNotificacoes    AgendaNotificacao[]
+  tarefas               Tarefa[]
+  contratos             Contrato[]
+  categoriasFinanceiras CategoriaFinanceira[]
+  centrosCusto          CentroCusto[]
+  lancamentosFinanceiros LancamentoFinanceiro[]
+  cobrancas             Cobranca[]
+  comissoes             Comissao[]
+  caixasDiarios         CaixaDiario[]
+  movimentosCaixa       MovimentoCaixa[]
+  conciliacoes          Conciliacao[]
+  conciliacaoItens      ConciliacaoItem[]
+  corretorEquipes       CorretorEquipe[]
+  corretorHistoricos    CorretorHistorico[]
+  auditLogs             AuditLog[]
+  appNotifications      AppNotification[]
+  documentos            Documento[]
+  integrationConfigs    IntegrationConfig[]
+  backupRecords         BackupRecord[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -74,16 +368,51 @@ model Usuario {
   perfil UserProfile @default(CORRETOR)
   ativo  Boolean     @default(true)
 
+  telefone       String?
+  fotoUrl        String?
+  creci          String?
+  crea           String?
+  comissaoPadrao Float          @default(5)
+  metaMensal     Float?
+  statusCorretor StatusCorretor @default(ATIVO)
+  equipeId       Int?
+  permissoes     String[]       @default([])
+
   empresaId Int
-  empresa   Empresa @relation(fields: [empresaId], references: [id], onDelete: Cascade)
-  leadsAssigned Lead[] @relation("LeadAssignedUser")
+  empresa   Empresa         @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+  equipe    CorretorEquipe? @relation(fields: [equipeId], references: [id], onDelete: SetNull)
+
+  leadsAssigned Lead[]        @relation("LeadAssignedUser")
   leadHistories LeadHistory[]
+
+  clientesCorretor       Cliente[]            @relation("CorretorCliente")
+  clienteAnotacoes       ClienteAnotacao[]
+  clienteInteracoes      ClienteInteracao[]
+  clienteVisitas         ClienteVisita[]
+  clientePropostas       ClienteProposta[]
+  clienteHistoricos      ClienteHistorico[]
+  eventosResponsavel     EventoAgenda[]       @relation("EventoResponsavel")
+  eventosCriados         EventoAgenda[]       @relation("EventoCriador")
+  agendaNotificacoes     AgendaNotificacao[]
+  tarefasResponsavel     Tarefa[]             @relation("TarefaResponsavel")
+  contratosCorretor      Contrato[]           @relation("ContratoCorretor")
+  lancamentosCorretor    LancamentoFinanceiro[] @relation("LancamentoCorretor")
+  comissoes              Comissao[]           @relation("ComissaoCorretor")
+  caixasFechados         CaixaDiario[]        @relation("CaixaFechadoPor")
+  conciliacoesCriadas    Conciliacao[]        @relation("ConciliacaoCriador")
+  corretorHistoricoAlvo  CorretorHistorico[]  @relation("CorretorAlvo")
+  corretorHistoricoAutor CorretorHistorico[]  @relation("CorretorAutor")
+  auditLogs              AuditLog[]
+  appNotifications       AppNotification[]
+  documentosUploaded     Documento[]          @relation("DocumentoUploader")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([empresaId])
   @@index([email, ativo])
+  @@index([empresaId, statusCorretor])
+  @@index([empresaId, equipeId])
 }
 
 model Property {
@@ -120,6 +449,14 @@ model Property {
   proprietario PropertyOwner? @relation(fields: [proprietarioId], references: [id], onDelete: SetNull)
   images       PropertyImage[]
   leads        Lead[]
+
+  clienteInteracoes ClienteInteracao[]
+  clienteFavoritos  ClienteFavorito[]
+  clienteVisitas    ClienteVisita[]
+  clientePropostas  ClienteProposta[]
+  eventosAgenda     EventoAgenda[]
+  tarefas           Tarefa[]
+  contratos         Contrato[]
 
   @@unique([empresaId, codigo])
   @@unique([empresaId, slug])
@@ -195,10 +532,10 @@ model PipelineStage {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  empresa          Empresa       @relation(fields: [empresaId], references: [id], onDelete: Cascade)
-  leads            Lead[]
-  historiesFrom    LeadHistory[] @relation("StageAnterior")
-  historiesTo      LeadHistory[] @relation("StageNovo")
+  empresa       Empresa       @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+  leads         Lead[]
+  historiesFrom LeadHistory[] @relation("StageAnterior")
+  historiesTo   LeadHistory[] @relation("StageNovo")
 
   @@unique([empresaId, ordem])
   @@index([empresaId, ativo, ordem])
@@ -229,6 +566,8 @@ model Lead {
   assignedUser Usuario?       @relation("LeadAssignedUser", fields: [assignedUserId], references: [id], onDelete: SetNull)
   stage        PipelineStage? @relation(fields: [stageId], references: [id], onDelete: SetNull)
   histories    LeadHistory[]
+  eventosAgenda EventoAgenda[]
+  tarefas      Tarefa[]
 
   @@index([empresaId, ativo, createdAt])
   @@index([empresaId, status])
@@ -248,12 +587,681 @@ model LeadHistory {
   observacao      String?
   createdAt       DateTime @default(now())
 
-  lead            Lead           @relation(fields: [leadId], references: [id], onDelete: Cascade)
-  user            Usuario        @relation(fields: [userId], references: [id], onDelete: Restrict)
-  stageAnterior   PipelineStage? @relation("StageAnterior", fields: [stageIdAnterior], references: [id], onDelete: SetNull)
-  stageNovo       PipelineStage  @relation("StageNovo", fields: [stageIdNovo], references: [id], onDelete: Restrict)
+  lead          Lead           @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  user          Usuario        @relation(fields: [userId], references: [id], onDelete: Restrict)
+  stageAnterior PipelineStage? @relation("StageAnterior", fields: [stageIdAnterior], references: [id], onDelete: SetNull)
+  stageNovo     PipelineStage  @relation("StageNovo", fields: [stageIdNovo], references: [id], onDelete: Restrict)
 
   @@index([leadId, createdAt])
   @@index([userId])
   @@map("lead_histories")
+}
+
+// ═════════════════════════════════════════════════════════════════════════════
+// Clientes
+// ═════════════════════════════════════════════════════════════════════════════
+
+model Cliente {
+  id               Int               @id @default(autoincrement())
+  empresaId        Int
+  corretorId       Int?
+  tipo             TipoCliente       @default(LEAD)
+  tipoPessoa       TipoPessoa        @default(PF)
+  status           StatusCliente     @default(PROSPECTO)
+  nome             String
+  razaoSocial      String?
+  nomeFantasia     String?
+  cpfCnpj          String?
+  email            String?
+  telefone         String?
+  whatsapp         String?
+  endereco         String?
+  cidade           String?
+  estado           String?
+  notas            String?
+  origem           String?
+  interesses       InteresseCliente[] @default([])
+  faixaPrecoMin    Float?
+  faixaPrecoMax    Float?
+  cidadesInteresse String[]          @default([])
+  tags             String[]          @default([])
+  avatarUrl        String?
+  ativo            Boolean           @default(true)
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+
+  empresa    Empresa  @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+  corretor   Usuario? @relation("CorretorCliente", fields: [corretorId], references: [id], onDelete: SetNull)
+
+  anotacoes              ClienteAnotacao[]
+  interacoes             ClienteInteracao[]
+  documentos             ClienteDocumento[]
+  favoritos              ClienteFavorito[]
+  visitas                ClienteVisita[]
+  propostas              ClienteProposta[]
+  historicos             ClienteHistorico[]
+  eventosAgenda          EventoAgenda[]
+  tarefas                Tarefa[]
+  contratos              Contrato[]
+  lancamentosFinanceiros LancamentoFinanceiro[]
+
+  @@index([empresaId, ativo, createdAt])
+  @@index([empresaId, tipo])
+  @@index([empresaId, status])
+  @@index([empresaId, corretorId])
+  @@index([empresaId, cidade])
+  @@index([empresaId, cpfCnpj])
+}
+
+model ClienteAnotacao {
+  id        Int      @id @default(autoincrement())
+  empresaId Int
+  clienteId Int
+  usuarioId Int
+  conteudo  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  empresa Empresa @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+  cliente Cliente @relation(fields: [clienteId], references: [id], onDelete: Cascade)
+  usuario Usuario @relation(fields: [usuarioId], references: [id], onDelete: Restrict)
+
+  @@index([empresaId, clienteId, createdAt])
+}
+
+model ClienteInteracao {
+  id         Int                  @id @default(autoincrement())
+  empresaId  Int
+  clienteId  Int
+  usuarioId  Int
+  propertyId Int?
+  tipo       TipoInteracaoCliente
+  titulo     String
+  descricao  String?
+  dataHora   DateTime             @default(now())
+  createdAt  DateTime             @default(now())
+
+  empresa  Empresa   @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+  cliente  Cliente   @relation(fields: [clienteId], references: [id], onDelete: Cascade)
+  usuario  Usuario   @relation(fields: [usuarioId], references: [id], onDelete: Restrict)
+  property Property? @relation(fields: [propertyId], references: [id], onDelete: SetNull)
+
+  @@index([empresaId, clienteId, dataHora])
+}
+
+model ClienteDocumento {
+  id          Int                  @id @default(autoincrement())
+  empresaId   Int
+  clienteId   Int
+  tipo        TipoDocumentoCliente @default(OUTRO)
+  nome        String
+  nomeArquivo String
+  mimeType    String
+  tamanho     Int
+  url         String
+  createdAt   DateTime             @default(now())
+
+  empresa Empresa @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+  cliente Cliente @relation(fields: [clienteId], references: [id], onDelete: Cascade)
+
+  @@index([empresaId, clienteId])
+}
+
+model ClienteFavorito {
+  id         Int      @id @default(autoincrement())
+  empresaId  Int
+  clienteId  Int
+  propertyId Int
+  createdAt  DateTime @default(now())
+
+  empresa  Empresa  @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+  cliente  Cliente  @relation(fields: [clienteId], references: [id], onDelete: Cascade)
+  property Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  @@unique([clienteId, propertyId])
+  @@index([empresaId, clienteId])
+}
+
+model ClienteVisita {
+  id         Int                 @id @default(autoincrement())
+  empresaId  Int
+  clienteId  Int
+  propertyId Int
+  usuarioId  Int
+  dataHora   DateTime
+  status     StatusVisitaCliente @default(AGENDADA)
+  observacoes String?
+  createdAt  DateTime            @default(now())
+  updatedAt  DateTime            @updatedAt
+
+  empresa  Empresa  @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+  cliente  Cliente  @relation(fields: [clienteId], references: [id], onDelete: Cascade)
+  property Property @relation(fields: [propertyId], references: [id], onDelete: Restrict)
+  usuario  Usuario  @relation(fields: [usuarioId], references: [id], onDelete: Restrict)
+
+  @@index([empresaId, clienteId, dataHora])
+  @@index([empresaId, propertyId])
+}
+
+model ClienteProposta {
+  id          Int                   @id @default(autoincrement())
+  empresaId   Int
+  clienteId   Int
+  propertyId  Int
+  usuarioId   Int
+  valor       Float
+  status      StatusPropostaCliente @default(RASCUNHO)
+  observacoes String?
+  createdAt   DateTime              @default(now())
+  updatedAt   DateTime              @updatedAt
+
+  empresa  Empresa  @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+  cliente  Cliente  @relation(fields: [clienteId], references: [id], onDelete: Cascade)
+  property Property @relation(fields: [propertyId], references: [id], onDelete: Restrict)
+  usuario  Usuario  @relation(fields: [usuarioId], references: [id], onDelete: Restrict)
+
+  @@index([empresaId, clienteId, createdAt])
+  @@index([empresaId, propertyId])
+}
+
+model ClienteHistorico {
+  id         Int                  @id @default(autoincrement())
+  empresaId  Int
+  clienteId  Int
+  usuarioId  Int
+  acao       AcaoHistoricoCliente
+  alteracoes Json?
+  createdAt  DateTime             @default(now())
+
+  empresa Empresa @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+  cliente Cliente @relation(fields: [clienteId], references: [id], onDelete: Cascade)
+  usuario Usuario @relation(fields: [usuarioId], references: [id], onDelete: Restrict)
+
+  @@index([empresaId, clienteId, createdAt])
+}
+
+// ═════════════════════════════════════════════════════════════════════════════
+// Agenda
+// ═════════════════════════════════════════════════════════════════════════════
+
+model EventoAgenda {
+  id          Int               @id @default(autoincrement())
+  empresaId   Int
+  titulo      String
+  tipo        TipoEventoAgenda
+  status      StatusEventoAgenda @default(AGENDADO)
+  inicio      DateTime
+  fim         DateTime
+  diaInteiro  Boolean           @default(false)
+  local       String?
+  descricao   String?
+  clienteId   Int?
+  propertyId  Int?
+  leadId      Int?
+  usuarioId   Int?
+  createdById Int
+  ativo       Boolean           @default(true)
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+
+  empresa   Empresa             @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+  cliente   Cliente?            @relation(fields: [clienteId], references: [id], onDelete: SetNull)
+  property  Property?           @relation(fields: [propertyId], references: [id], onDelete: SetNull)
+  lead      Lead?               @relation(fields: [leadId], references: [id], onDelete: SetNull)
+  usuario   Usuario?            @relation("EventoResponsavel", fields: [usuarioId], references: [id], onDelete: SetNull)
+  createdBy Usuario             @relation("EventoCriador", fields: [createdById], references: [id], onDelete: Restrict)
+  notificacoes AgendaNotificacao[]
+
+  @@index([empresaId, inicio])
+  @@index([empresaId, usuarioId, inicio])
+  @@index([empresaId, status])
+  @@index([empresaId, tipo])
+  @@index([empresaId, ativo, inicio])
+  @@index([empresaId, clienteId])
+  @@index([empresaId, propertyId])
+  @@index([empresaId, leadId])
+}
+
+model AgendaNotificacao {
+  id        Int      @id @default(autoincrement())
+  empresaId Int
+  usuarioId Int
+  eventoId  Int?
+  titulo    String
+  mensagem  String
+  lida      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  empresa Empresa       @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+  usuario Usuario       @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  evento  EventoAgenda? @relation(fields: [eventoId], references: [id], onDelete: Cascade)
+
+  @@index([empresaId, usuarioId, lida, createdAt])
+  @@index([empresaId, eventoId])
+}
+
+// ═════════════════════════════════════════════════════════════════════════════
+// Tarefas
+// ═════════════════════════════════════════════════════════════════════════════
+
+model Tarefa {
+  id            Int              @id @default(autoincrement())
+  empresaId     Int
+  titulo        String
+  descricao     String?
+  status        StatusTarefa     @default(PENDENTE)
+  prioridade    PrioridadeTarefa @default(MEDIA)
+  vencimento    DateTime?
+  responsavelId Int?
+  leadId        Int?
+  clienteId     Int?
+  propertyId    Int?
+  ativo         Boolean          @default(true)
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+
+  empresa     Empresa  @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+  responsavel Usuario? @relation("TarefaResponsavel", fields: [responsavelId], references: [id], onDelete: SetNull)
+  lead        Lead?    @relation(fields: [leadId], references: [id], onDelete: SetNull)
+  cliente     Cliente? @relation(fields: [clienteId], references: [id], onDelete: SetNull)
+  property    Property? @relation(fields: [propertyId], references: [id], onDelete: SetNull)
+
+  @@index([empresaId, status, ativo])
+  @@index([empresaId, responsavelId, status])
+  @@index([empresaId, vencimento])
+  @@index([empresaId, leadId])
+  @@index([empresaId, clienteId])
+  @@index([empresaId, propertyId])
+}
+
+// ═════════════════════════════════════════════════════════════════════════════
+// Contratos
+// ═════════════════════════════════════════════════════════════════════════════
+
+model Contrato {
+  id          Int            @id @default(autoincrement())
+  empresaId   Int
+  tipo        TipoContrato
+  status      StatusContrato @default(RASCUNHO)
+  valor       Float
+  dataInicio  DateTime
+  dataFim     DateTime?
+  clienteId   Int
+  propertyId  Int
+  corretorId  Int?
+  observacoes String?
+  ativo       Boolean        @default(true)
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  empresa  Empresa  @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+  cliente  Cliente  @relation(fields: [clienteId], references: [id], onDelete: Restrict)
+  property Property @relation(fields: [propertyId], references: [id], onDelete: Restrict)
+  corretor Usuario? @relation("ContratoCorretor", fields: [corretorId], references: [id], onDelete: SetNull)
+
+  cobrancas   Cobranca[]
+  lancamentos LancamentoFinanceiro[]
+  comissoes   Comissao[]
+
+  @@index([empresaId, status, ativo])
+  @@index([empresaId, corretorId])
+  @@index([empresaId, propertyId])
+  @@index([empresaId, clienteId])
+}
+
+// ═════════════════════════════════════════════════════════════════════════════
+// Financeiro
+// ═════════════════════════════════════════════════════════════════════════════
+
+model CategoriaFinanceira {
+  id        Int                     @id @default(autoincrement())
+  empresaId Int
+  nome      String
+  tipo      TipoCategoriaFinanceira
+  codigo    String?
+  ativo     Boolean                 @default(true)
+  createdAt DateTime                @default(now())
+  updatedAt DateTime                @updatedAt
+
+  empresa     Empresa                @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+  lancamentos LancamentoFinanceiro[]
+  cobrancas   Cobranca[]
+
+  @@unique([empresaId, codigo])
+  @@index([empresaId, tipo, ativo])
+}
+
+model CentroCusto {
+  id        Int      @id @default(autoincrement())
+  empresaId Int
+  nome      String
+  codigo    String?
+  descricao String?
+  ativo     Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  empresa     Empresa                @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+  lancamentos LancamentoFinanceiro[]
+  cobrancas   Cobranca[]
+  comissoes   Comissao[]
+
+  @@unique([empresaId, codigo])
+  @@index([empresaId, ativo])
+}
+
+model LancamentoFinanceiro {
+  id             Int                        @id @default(autoincrement())
+  empresaId      Int
+  tipo           TipoLancamentoFinanceiro
+  descricao      String
+  valor          Float
+  valorPago      Float                      @default(0)
+  vencimento     DateTime
+  dataPagamento  DateTime?
+  status         StatusLancamentoFinanceiro @default(ABERTO)
+  formaPagamento FormaPagamentoFinanceiro?
+  categoriaId    Int?
+  centroCustoId  Int?
+  clienteId      Int?
+  contratoId     Int?
+  corretorId     Int?
+  competencia    DateTime?
+  observacoes    String?
+  conciliado     Boolean                    @default(false)
+  ativo          Boolean                    @default(true)
+  createdAt      DateTime                   @default(now())
+  updatedAt      DateTime                   @updatedAt
+
+  empresa      Empresa               @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+  categoria    CategoriaFinanceira?  @relation(fields: [categoriaId], references: [id], onDelete: SetNull)
+  centroCusto  CentroCusto?          @relation(fields: [centroCustoId], references: [id], onDelete: SetNull)
+  cliente      Cliente?              @relation(fields: [clienteId], references: [id], onDelete: SetNull)
+  contrato     Contrato?             @relation(fields: [contratoId], references: [id], onDelete: SetNull)
+  corretor     Usuario?              @relation("LancamentoCorretor", fields: [corretorId], references: [id], onDelete: SetNull)
+  cobranca     Cobranca?
+  movimentos   MovimentoCaixa[]
+  comissoes    Comissao[]
+  conciliacaoItens ConciliacaoItem[]
+
+  @@index([empresaId, tipo, status])
+  @@index([empresaId, vencimento])
+  @@index([empresaId, ativo, createdAt])
+  @@index([empresaId, clienteId])
+  @@index([empresaId, contratoId])
+  @@index([empresaId, corretorId])
+  @@index([empresaId, conciliado])
+}
+
+model Cobranca {
+  id             Int            @id @default(autoincrement())
+  empresaId      Int
+  contratoId     Int
+  descricao      String
+  valor          Float
+  vencimento     DateTime
+  pagamento      DateTime?
+  status         StatusCobranca @default(PENDENTE)
+  categoriaId    Int?
+  centroCustoId  Int?
+  formaPagamento FormaPagamentoFinanceiro?
+  lancamentoId   Int?           @unique
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  empresa     Empresa               @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+  contrato    Contrato              @relation(fields: [contratoId], references: [id], onDelete: Restrict)
+  categoria   CategoriaFinanceira?  @relation(fields: [categoriaId], references: [id], onDelete: SetNull)
+  centroCusto CentroCusto?          @relation(fields: [centroCustoId], references: [id], onDelete: SetNull)
+  lancamento  LancamentoFinanceiro? @relation(fields: [lancamentoId], references: [id], onDelete: SetNull)
+
+  @@index([empresaId, status, vencimento])
+  @@index([empresaId, contratoId])
+}
+
+model Comissao {
+  id            Int            @id @default(autoincrement())
+  empresaId     Int
+  corretorId    Int
+  contratoId    Int?
+  lancamentoId  Int?
+  centroCustoId Int?
+  descricao     String
+  valorBase     Float
+  percentual    Float
+  valor         Float
+  status        StatusComissao @default(PREVISTA)
+  competencia   DateTime
+  dataPagamento DateTime?
+  observacoes   String?
+  ativo         Boolean        @default(true)
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  empresa     Empresa               @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+  corretor    Usuario               @relation("ComissaoCorretor", fields: [corretorId], references: [id], onDelete: Restrict)
+  contrato    Contrato?             @relation(fields: [contratoId], references: [id], onDelete: SetNull)
+  lancamento  LancamentoFinanceiro? @relation(fields: [lancamentoId], references: [id], onDelete: SetNull)
+  centroCusto CentroCusto?          @relation(fields: [centroCustoId], references: [id], onDelete: SetNull)
+  movimentos  MovimentoCaixa[]
+
+  @@index([empresaId, status, competencia])
+  @@index([empresaId, corretorId])
+  @@index([empresaId, contratoId])
+}
+
+model CaixaDiario {
+  id           Int               @id @default(autoincrement())
+  empresaId    Int
+  data         DateTime
+  saldoInicial Float             @default(0)
+  saldoFinal   Float?
+  status       StatusCaixaDiario @default(ABERTO)
+  observacoes  String?
+  fechadoPorId Int?
+  fechadoEm    DateTime?
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+
+  empresa    Empresa          @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+  fechadoPor Usuario?         @relation("CaixaFechadoPor", fields: [fechadoPorId], references: [id], onDelete: SetNull)
+  movimentos MovimentoCaixa[]
+
+  @@unique([empresaId, data])
+  @@index([empresaId, status, data])
+}
+
+model MovimentoCaixa {
+  id             Int                       @id @default(autoincrement())
+  empresaId      Int
+  caixaDiarioId  Int
+  tipo           TipoMovimentoCaixa
+  descricao      String
+  valor          Float
+  formaPagamento FormaPagamentoFinanceiro?
+  lancamentoId   Int?
+  comissaoId     Int?
+  createdAt      DateTime                  @default(now())
+
+  empresa          Empresa               @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+  caixaDiario      CaixaDiario           @relation(fields: [caixaDiarioId], references: [id], onDelete: Cascade)
+  lancamento       LancamentoFinanceiro? @relation(fields: [lancamentoId], references: [id], onDelete: SetNull)
+  comissao         Comissao?             @relation(fields: [comissaoId], references: [id], onDelete: SetNull)
+  conciliacaoItens ConciliacaoItem[]
+
+  @@index([empresaId, caixaDiarioId])
+  @@index([empresaId, createdAt])
+}
+
+model Conciliacao {
+  id            Int               @id @default(autoincrement())
+  empresaId     Int
+  titulo        String
+  periodoInicio DateTime
+  periodoFim    DateTime
+  status        StatusConciliacao @default(ABERTA)
+  saldoExtrato  Float?
+  saldoSistema  Float?
+  observacoes   String?
+  criadoPorId   Int
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+
+  empresa   Empresa           @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+  criadoPor Usuario           @relation("ConciliacaoCriador", fields: [criadoPorId], references: [id], onDelete: Restrict)
+  itens     ConciliacaoItem[]
+
+  @@index([empresaId, status, periodoInicio])
+}
+
+model ConciliacaoItem {
+  id               Int       @id @default(autoincrement())
+  empresaId        Int
+  conciliacaoId    Int
+  lancamentoId     Int?
+  movimentoCaixaId Int?
+  descricao        String
+  valor            Float
+  dataReferencia   DateTime?
+  conciliado       Boolean   @default(false)
+  createdAt        DateTime  @default(now())
+
+  empresa        Empresa               @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+  conciliacao    Conciliacao           @relation(fields: [conciliacaoId], references: [id], onDelete: Cascade)
+  lancamento     LancamentoFinanceiro? @relation(fields: [lancamentoId], references: [id], onDelete: SetNull)
+  movimentoCaixa MovimentoCaixa?       @relation(fields: [movimentoCaixaId], references: [id], onDelete: SetNull)
+
+  @@index([empresaId, conciliacaoId])
+}
+
+// ═════════════════════════════════════════════════════════════════════════════
+// Corretores (extends Usuario + equipe/histórico)
+// ═════════════════════════════════════════════════════════════════════════════
+
+model CorretorEquipe {
+  id        Int      @id @default(autoincrement())
+  empresaId Int
+  nome      String
+  ativo     Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  empresa    Empresa   @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+  corretores Usuario[]
+
+  @@index([empresaId, ativo])
+}
+
+model CorretorHistorico {
+  id         Int                   @id @default(autoincrement())
+  empresaId  Int
+  usuarioId  Int
+  autorId    Int
+  acao       AcaoHistoricoCorretor
+  alteracoes Json?
+  createdAt  DateTime              @default(now())
+
+  empresa Empresa @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+  usuario Usuario @relation("CorretorAlvo", fields: [usuarioId], references: [id], onDelete: Cascade)
+  autor   Usuario @relation("CorretorAutor", fields: [autorId], references: [id], onDelete: Restrict)
+
+  @@index([empresaId, usuarioId, createdAt])
+}
+
+// ═════════════════════════════════════════════════════════════════════════════
+// System
+// ═════════════════════════════════════════════════════════════════════════════
+
+model AuditLog {
+  id        Int      @id @default(autoincrement())
+  empresaId Int?
+  userId    Int?
+  action    String
+  entity    String
+  entityId  String?
+  meta      Json?
+  ip        String?
+  createdAt DateTime @default(now())
+
+  empresa Empresa? @relation(fields: [empresaId], references: [id], onDelete: SetNull)
+  user    Usuario? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([empresaId, createdAt])
+  @@index([entity, entityId])
+  @@index([userId, createdAt])
+}
+
+model SystemLog {
+  id        Int            @id @default(autoincrement())
+  level     SystemLogLevel @default(INFO)
+  message   String
+  context   Json?
+  createdAt DateTime       @default(now())
+
+  @@index([level, createdAt])
+  @@index([createdAt])
+}
+
+model AppNotification {
+  id        Int      @id @default(autoincrement())
+  empresaId Int
+  userId    Int?
+  title     String
+  body      String
+  lida      Boolean  @default(false)
+  link      String?
+  createdAt DateTime @default(now())
+
+  empresa Empresa  @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+  user    Usuario? @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([empresaId, userId, lida, createdAt])
+}
+
+model Documento {
+  id           Int      @id @default(autoincrement())
+  empresaId    Int
+  nome         String
+  filePath     String
+  mimeType     String
+  size         Int
+  entityType   String?
+  entityId     String?
+  uploadedById Int?
+  createdAt    DateTime @default(now())
+
+  empresa    Empresa  @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+  uploadedBy Usuario? @relation("DocumentoUploader", fields: [uploadedById], references: [id], onDelete: SetNull)
+
+  @@index([empresaId, entityType, entityId])
+  @@index([empresaId, createdAt])
+}
+
+model IntegrationConfig {
+  id        Int      @id @default(autoincrement())
+  empresaId Int
+  provider  String
+  config    Json
+  ativo     Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  empresa Empresa @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+
+  @@unique([empresaId, provider])
+  @@index([empresaId, ativo])
+}
+
+model BackupRecord {
+  id          Int          @id @default(autoincrement())
+  empresaId   Int?
+  status      BackupStatus @default(PENDENTE)
+  filePath    String?
+  createdAt   DateTime     @default(now())
+  completedAt DateTime?
+
+  empresa Empresa? @relation(fields: [empresaId], references: [id], onDelete: SetNull)
+
+  @@index([empresaId, createdAt])
+  @@index([status, createdAt])
 }

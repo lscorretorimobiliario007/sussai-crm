@@ -18,7 +18,7 @@ import {
 import MainLayout from "../components/layout/MainLayout";
 import Button from "../components/ui/Button";
 import Input from "../components/ui/Input";
-import { useToast } from "../components/ui/Toast";
+import { useToast } from "../context/toast";
 import api from "../api/axios";
 import { buscarCep, formatCep } from "../utils/cep";
 
@@ -166,7 +166,7 @@ export default function ImovelForm() {
       setForm((current) => ({
         ...current,
         cep: formatCep(data.cep),
-        endereco: data.endereco || current.endereco,
+        endereco: data.rua || current.endereco,
         bairro: data.bairro || current.bairro,
         cidade: data.cidade || current.cidade,
         estado: data.estado || current.estado,

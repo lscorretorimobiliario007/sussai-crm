@@ -1,8 +1,14 @@
-import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ConflictException,
+  ForbiddenException,
+} from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { PipelineService } from '../pipeline/pipeline.service';
 import { CreateCompanyDto, UpdateCompanyDto } from './dto/create-company.dto';
+import type { AuthUser } from '../auth/types/auth-user.type';
 
 @Injectable()
 export class CompaniesService {
@@ -30,8 +36,8 @@ export class CompaniesService {
       };
     } catch (error) {
       if (
-        error instanceof Prisma.PrismaClientKnownRequestError
-        && error.code === 'P2002'
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === 'P2002'
       ) {
         throw new ConflictException('Já existe uma empresa com este CNPJ');
       }
@@ -39,10 +45,18 @@ export class CompaniesService {
     }
   }
 
-  findAll() {
+  findAllForUser(user: AuthUser) {
     return this.prisma.empresa.findMany({
+      where: { id: user.empresaId },
       orderBy: { createdAt: 'desc' },
     });
+  }
+
+  async findOneForUser(user: AuthUser, id: number) {
+    if (id !== user.empresaId) {
+      throw new ForbiddenException('Acesso negado a esta empresa');
+    }
+    return this.findOne(id);
   }
 
   async findOne(id: number) {
@@ -51,6 +65,13 @@ export class CompaniesService {
       throw new NotFoundException(`Empresa #${id} não encontrada`);
     }
     return empresa;
+  }
+
+  async updateForUser(user: AuthUser, id: number, dto: UpdateCompanyDto) {
+    if (id !== user.empresaId) {
+      throw new ForbiddenException('Acesso negado a esta empresa');
+    }
+    return this.update(id, dto);
   }
 
   async update(id: number, dto: UpdateCompanyDto) {
@@ -68,6 +89,15 @@ export class CompaniesService {
         }),
       },
     });
+  }
+
+  removeForUser(user: AuthUser, id: number) {
+    if (id !== user.empresaId) {
+      throw new ForbiddenException('Acesso negado a esta empresa');
+    }
+    throw new ForbiddenException(
+      'Exclusão de empresa desabilitada por segurança. Contate o suporte.',
+    );
   }
 
   async remove(id: number) {

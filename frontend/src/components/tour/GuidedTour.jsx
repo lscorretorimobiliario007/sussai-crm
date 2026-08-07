@@ -1,8 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { Box, Button as MuiButton, Paper, Stack, Typography } from "@mui/material";
 import { Close, NavigateBefore, NavigateNext } from "@mui/icons-material";
-
-const TOUR_STORAGE_KEY = "sussai_tour_done_v1";
+import { markTourDone } from "../../utils/tour";
 
 const STEPS = [
   {
@@ -14,41 +13,22 @@ const STEPS = [
   {
     id: "dashboard",
     title: "Dashboard executivo",
-    body: "Acompanhe imóveis, pipeline, financeiro e comissões em um único painel.",
+    body: "Acompanhe imóveis, proprietários e oportunidades em um único painel.",
     selector: "[data-tour='dashboard-metrics']",
   },
   {
     id: "sidebar",
     title: "Navegação",
-    body: "Use o menu lateral para Imóveis, Clientes, Agenda, Pipeline, Proprietários, Corretores e Financeiro.",
+    body: "Use o menu lateral para acessar Imóveis, Proprietários e Pipeline.",
     selector: "[data-tour='sidebar']",
-  },
-  {
-    id: "demo-mode",
-    title: "Modo Demonstração",
-    body: "Reinicie os dados fictícios a qualquer momento para repetir a apresentação do zero.",
-    selector: "[data-tour='demo-mode']",
   },
   {
     id: "finish",
     title: "Pronto para apresentar",
-    body: "Explore o pipeline, agende uma visita e mostre o financeiro. Bom pitch!",
+    body: "Explore o portfólio, os proprietários e o pipeline. Bom trabalho!",
     selector: null,
   },
 ];
-
-export function shouldAutoStartTour(usuario) {
-  if (!usuario) return false;
-  return localStorage.getItem(TOUR_STORAGE_KEY) !== "1";
-}
-
-export function markTourDone() {
-  localStorage.setItem(TOUR_STORAGE_KEY, "1");
-}
-
-export function resetTourFlag() {
-  localStorage.removeItem(TOUR_STORAGE_KEY);
-}
 
 export default function GuidedTour({ open, onClose }) {
   const [index, setIndex] = useState(0);

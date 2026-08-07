@@ -29,7 +29,7 @@ import {
   CloudUploadOutlined,
   DragIndicator,
   DeleteOutlined,
-  ErrorOutline,
+  ErrorOutlineOutlined,
   Star,
   StarBorder,
   UploadOutlined,
@@ -107,7 +107,7 @@ const STATUS_DETAILS = {
   pending: { label: "Pronto para enviar", color: "default", icon: null },
   uploading: { label: "Uploadando...", color: "info", icon: <CircularProgress size={13} color="inherit" /> },
   completed: { label: "Concluído", color: "success", icon: <Box component="span">✓</Box> },
-  error: { label: "Erro", color: "error", icon: <ErrorOutline /> },
+  error: { label: "Erro", color: "error", icon: <ErrorOutlineOutlined /> },
   canceled: { label: "Cancelado", color: "default", icon: <CancelOutlined /> },
 };
 

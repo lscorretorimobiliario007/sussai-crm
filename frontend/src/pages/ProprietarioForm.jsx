@@ -9,17 +9,19 @@ import Button from "../components/ui/Button";
 import Card from "../components/ui/Card";
 import Input from "../components/ui/Input";
 import Loading from "../components/ui/Loading";
-import { useToast } from "../components/ui/Toast";
+import { useToast } from "../context/toast";
 import api from "../api/axios";
 import { buscarCep, formatCep } from "../utils/cep";
 import { formatCnpj, formatCpf, formatPhone } from "../utils/clientes";
 import { isValidCnpj, isValidCpf } from "../utils/validators";
+import {
+  createEmptyPropertyOwner,
+  createPropertyOwnerPayload,
+  getPropertyOwnerError,
+  propertyOwnerToForm,
+} from "../utils/proprietarios";
 
-const emptyForm = {
-  nome: "", cpf: "", cnpj: "", rg: "", email: "", telefone: "", celular: "",
-  whatsapp: "", cep: "", rua: "", numero: "", complemento: "", bairro: "",
-  cidade: "", estado: "", observacoes: "",
-};
+const emptyForm = createEmptyPropertyOwner();
 
 export default function ProprietarioForm() {
   const { id } = useParams();
@@ -45,28 +47,19 @@ export default function ProprietarioForm() {
           navigate(`/proprietarios/${id}`);
           return;
         }
+        const ownerForm = propertyOwnerToForm(data);
         setForm({
-          ...emptyForm,
-          nome: data.nome || "",
-          cpf: formatCpf(data.cpf || ""),
-          cnpj: formatCnpj(data.cnpj || ""),
-          rg: data.rg || "",
-          email: data.email || "",
-          telefone: formatPhone(data.telefone || ""),
-          celular: formatPhone(data.celular || ""),
-          whatsapp: formatPhone(data.whatsapp || ""),
-          cep: formatCep(data.cep || ""),
-          rua: data.rua || "",
-          numero: data.numero || "",
-          complemento: data.complemento || "",
-          bairro: data.bairro || "",
-          cidade: data.cidade || "",
-          estado: data.estado || "",
-          observacoes: data.observacoes || "",
+          ...ownerForm,
+          cpf: formatCpf(ownerForm.cpf),
+          cnpj: formatCnpj(ownerForm.cnpj),
+          telefone: formatPhone(ownerForm.telefone),
+          celular: formatPhone(ownerForm.celular),
+          whatsapp: formatPhone(ownerForm.whatsapp),
+          cep: formatCep(ownerForm.cep),
         });
       }
     } catch (error) {
-      toast.error(error.response?.data?.erro || "Erro ao carregar formulário.");
+      toast.error(getPropertyOwnerError(error, "Erro ao carregar formulário."));
       navigate("/proprietarios");
     } finally {
       setLoading(false);
@@ -94,16 +87,7 @@ export default function ProprietarioForm() {
     }
     setSaving(true);
     try {
-      const payload = {
-        ...form,
-        cpf: form.cpf.replace(/\D/g, "") || null,
-        cnpj: form.cnpj.replace(/\D/g, "") || null,
-        telefone: form.telefone.replace(/\D/g, "") || null,
-        celular: form.celular.replace(/\D/g, "") || null,
-        whatsapp: form.whatsapp.replace(/\D/g, "") || null,
-        cep: form.cep.replace(/\D/g, "") || null,
-        estado: form.estado.toUpperCase(),
-      };
+      const payload = createPropertyOwnerPayload(form);
       const response = editing
         ? await api.put(`/proprietarios/${id}`, payload)
         : await api.post("/proprietarios", payload);
@@ -111,7 +95,7 @@ export default function ProprietarioForm() {
       toast.success(editing ? "Proprietário atualizado." : "Proprietário cadastrado.");
       navigate(`/proprietarios/${proprietarioId}`);
     } catch (error) {
-      toast.error(error.response?.data?.erro || "Erro ao salvar.");
+      toast.error(getPropertyOwnerError(error, "Erro ao salvar."));
     } finally {
       setSaving(false);
     }
@@ -134,7 +118,7 @@ export default function ProprietarioForm() {
       setForm((current) => ({
         ...current,
         cep: formatCep(address.cep),
-        rua: address.endereco || current.rua,
+        rua: address.rua || current.rua,
         bairro: address.bairro || current.bairro,
         cidade: address.cidade || current.cidade,
         estado: address.estado || current.estado,

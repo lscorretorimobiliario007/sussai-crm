@@ -31,14 +31,22 @@ export class PropertyImagesController {
 
   @Post()
   @UseInterceptors(
-    FilesInterceptor('images', MAX_PROPERTY_IMAGES, propertyImagesMulterOptions),
+    FilesInterceptor(
+      'images',
+      MAX_PROPERTY_IMAGES,
+      propertyImagesMulterOptions,
+    ),
   )
   upload(
     @CurrentUser() user: AuthUser,
     @Param('propertyId', ParseIntPipe) propertyId: number,
     @UploadedFiles() files: Express.Multer.File[],
   ) {
-    return this.propertyImagesService.upload(user.empresaId, propertyId, files || []);
+    return this.propertyImagesService.upload(
+      user.empresaId,
+      propertyId,
+      files || [],
+    );
   }
 
   @Get()

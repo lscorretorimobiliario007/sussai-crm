@@ -31,10 +31,7 @@ export class PipelineController {
   }
 
   @Post()
-  create(
-    @CurrentUser() user: AuthUser,
-    @Body() dto: CreatePipelineStageDto,
-  ) {
+  create(@CurrentUser() user: AuthUser, @Body() dto: CreatePipelineStageDto) {
     return this.pipelineService.createStage(user.empresaId, dto);
   }
 
@@ -49,10 +46,7 @@ export class PipelineController {
 
   @Delete(':id')
   @HttpCode(HttpStatus.OK)
-  remove(
-    @CurrentUser() user: AuthUser,
-    @Param('id', ParseIntPipe) id: number,
-  ) {
+  remove(@CurrentUser() user: AuthUser, @Param('id', ParseIntPipe) id: number) {
     return this.pipelineService.removeStage(user.empresaId, id);
   }
 }

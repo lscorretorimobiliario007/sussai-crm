@@ -17,12 +17,11 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
     info?: { message?: string } | string,
   ): TUser {
     if (err || !user) {
-      const infoMessage =
-        typeof info === 'string' ? info : info?.message;
+      const infoMessage = typeof info === 'string' ? info : info?.message;
 
       throw (
-        err
-        || new UnauthorizedException(
+        err ||
+        new UnauthorizedException(
           infoMessage === 'No auth token'
             ? 'Token de autenticação não informado'
             : 'Token inválido ou expirado',

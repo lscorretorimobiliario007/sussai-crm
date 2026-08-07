@@ -57,7 +57,11 @@ export default function Registrar() {
       });
       navigate("/");
     } catch (err) {
-      setErro(err.response?.data?.erro || "Erro ao registrar. Tente novamente.");
+      setErro(
+        err.response?.data?.erro
+          || err.response?.data?.message
+          || "Erro ao registrar. Tente novamente.",
+      );
     } finally {
       setLoading(false);
     }

@@ -4,8 +4,8 @@
   "version": "1.0.0-rc1",
   "description": "SUSSAI CRM + Portal Top Conceição",
   "scripts": {
-    "check": "npm run check --prefix backend && npm run lint --prefix frontend && npm run lint --prefix top-conceicao-site",
-    "build": "npm run build --prefix backend && npm run build --prefix frontend && npm run build --prefix top-conceicao-site",
+    "check": "npm run check --prefix backend && npm run lint --prefix frontend",
+    "build": "npm run build --prefix backend && npm run build --prefix frontend",
     "validate": "npm run check && npm run build"
   },
   "dependencies": {

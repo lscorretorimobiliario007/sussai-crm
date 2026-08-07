@@ -4,19 +4,20 @@ import { randomUUID } from 'crypto';
 import { BadRequestException } from '@nestjs/common';
 import { diskStorage } from 'multer';
 import type { Request } from 'express';
+import {
+  ALLOWED_IMAGE_MIME_TYPES,
+  imageFileFilter,
+} from '../../common/upload/file-filters';
 
-export const PROPERTY_UPLOAD_ROOT = join(process.cwd(), 'uploads', 'properties');
+export const PROPERTY_UPLOAD_ROOT = join(
+  process.cwd(),
+  'uploads',
+  'properties',
+);
 export const MAX_PROPERTY_IMAGE_SIZE = 10 * 1024 * 1024;
 export const MAX_PROPERTY_IMAGES = 40;
 
-export const ALLOWED_IMAGE_MIME_TYPES = new Set([
-  'image/jpeg',
-  'image/jpg',
-  'image/png',
-  'image/webp',
-  'image/heic',
-  'image/heif',
-]);
+export { ALLOWED_IMAGE_MIME_TYPES };
 
 const MIME_EXTENSION: Record<string, string> = {
   'image/jpeg': '.jpg',
@@ -33,7 +34,10 @@ export function ensurePropertyUploadDir(propertyId: number | string): string {
   return dir;
 }
 
-export function resolveImageExtension(originalName: string, mimeType: string): string {
+export function resolveImageExtension(
+  originalName: string,
+  mimeType: string,
+): string {
   const fromName = extname(originalName).toLowerCase();
   if (['.jpg', '.jpeg', '.png', '.webp'].includes(fromName)) {
     return fromName === '.jpeg' ? '.jpg' : fromName;
@@ -41,7 +45,9 @@ export function resolveImageExtension(originalName: string, mimeType: string): s
   return MIME_EXTENSION[mimeType] || '.jpg';
 }
 
-function paramAsString(value: string | string[] | undefined): string | undefined {
+function paramAsString(
+  value: string | string[] | undefined,
+): string | undefined {
   if (value == null) {
     return undefined;
   }
@@ -53,23 +59,13 @@ export const propertyImagesMulterOptions = {
     fileSize: MAX_PROPERTY_IMAGE_SIZE,
     files: MAX_PROPERTY_IMAGES,
   },
-  fileFilter: (
-    _req: Request,
-    file: Express.Multer.File,
-    callback: (error: Error | null, acceptFile: boolean) => void,
-  ) => {
-    if (!ALLOWED_IMAGE_MIME_TYPES.has(file.mimetype)) {
-      return callback(
-        new BadRequestException('Apenas imagens JPG, JPEG, PNG e WEBP são permitidas'),
-        false,
-      );
-    }
-    return callback(null, true);
-  },
+  fileFilter: imageFileFilter,
   storage: diskStorage({
     destination: (req, _file, callback) => {
       try {
-        const propertyId = paramAsString(req.params.propertyId || req.params.id);
+        const propertyId = paramAsString(
+          req.params.propertyId || req.params.id,
+        );
         if (!propertyId) {
           return callback(new BadRequestException('Imóvel inválido'), '');
         }

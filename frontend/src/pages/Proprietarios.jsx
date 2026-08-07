@@ -2,7 +2,6 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Box,
-  Chip,
   Collapse,
   Grid,
   IconButton,
@@ -30,16 +29,14 @@ import EmptyState from "../components/ui/EmptyState";
 import Input from "../components/ui/Input";
 import Loading from "../components/ui/Loading";
 import Select from "../components/ui/Select";
-import { useToast } from "../components/ui/Toast";
+import { useToast } from "../context/toast";
 import api from "../api/axios";
 import { formatCurrency } from "../utils/formatters";
-import { STATUS_CLIENTE, TIPOS_PESSOA, optionLabel, statusMeta } from "../utils/clientes";
+import { formatCnpj, formatCpf, formatPhone } from "../utils/clientes";
+import { getPropertyOwnerError } from "../utils/proprietarios";
 
 const initialFilters = {
-  tipoPessoa: "",
-  status: "",
   cidade: "",
-  corretorId: "",
   ativo: "true",
 };
 
@@ -47,7 +44,6 @@ export default function Proprietarios() {
   const navigate = useNavigate();
   const toast = useToast();
   const [items, setItems] = useState([]);
-  const [options, setOptions] = useState({ corretores: [] });
   const [dashboard, setDashboard] = useState(null);
   const [meta, setMeta] = useState({ page: 1, totalPages: 1, total: 0 });
   const [filters, setFilters] = useState(initialFilters);
@@ -66,7 +62,6 @@ export default function Proprietarios() {
   }, [search]);
 
   useEffect(() => {
-    api.get("/proprietarios/opcoes").then((res) => setOptions(res.data)).catch(() => {});
     api.get("/proprietarios/dashboard").then((res) => setDashboard(res.data)).catch(() => {});
   }, []);
 
@@ -79,7 +74,7 @@ export default function Proprietarios() {
       setItems(response.data.data);
       setMeta(response.data.meta);
     } catch (error) {
-      toast.error(error.response?.data?.erro || "Erro ao carregar proprietários.");
+      toast.error(getPropertyOwnerError(error, "Erro ao carregar proprietários."));
     } finally {
       setLoading(false);
     }
@@ -105,7 +100,7 @@ export default function Proprietarios() {
       setDeleteTarget(null);
       load();
     } catch (error) {
-      toast.error(error.response?.data?.erro || "Erro ao desativar.");
+      toast.error(getPropertyOwnerError(error, "Erro ao desativar."));
     } finally {
       setBusy(false);
     }
@@ -119,7 +114,7 @@ export default function Proprietarios() {
       setRestoreTarget(null);
       load();
     } catch (error) {
-      toast.error(error.response?.data?.erro || "Erro ao reativar.");
+      toast.error(getPropertyOwnerError(error, "Erro ao reativar."));
     } finally {
       setBusy(false);
     }
@@ -183,15 +178,6 @@ export default function Proprietarios() {
                 <Select size="small" label="Situação" value={filters.ativo} options={[{ value: "true", label: "Ativos" }, { value: "false", label: "Inativos" }]} onChange={(event) => updateFilter("ativo", event.target.value)} />
               </Grid>
               <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-                <Select size="small" label="Pessoa" value={filters.tipoPessoa} options={[{ value: "", label: "Todas" }, ...TIPOS_PESSOA]} onChange={(event) => updateFilter("tipoPessoa", event.target.value)} />
-              </Grid>
-              <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-                <Select size="small" label="Status" value={filters.status} options={[{ value: "", label: "Todos" }, ...STATUS_CLIENTE]} onChange={(event) => updateFilter("status", event.target.value)} />
-              </Grid>
-              <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-                <Select size="small" label="Corretor" value={filters.corretorId} options={[{ value: "", label: "Todos" }, ...(options.corretores || []).map((item) => ({ value: item.id, label: item.nome }))]} onChange={(event) => updateFilter("corretorId", event.target.value)} />
-              </Grid>
-              <Grid size={{ xs: 12, sm: 6, md: 3 }}>
                 <Input size="small" label="Cidade" value={filters.cidade} onChange={(event) => updateFilter("cidade", event.target.value)} />
               </Grid>
             </Grid>
@@ -203,7 +189,12 @@ export default function Proprietarios() {
         ) : (
           <Grid container spacing={2.5}>
             {items.map((item) => {
-              const status = statusMeta(item.status);
+              const document = item.cpf
+                ? formatCpf(item.cpf)
+                : item.cnpj
+                  ? formatCnpj(item.cnpj)
+                  : "Sem documento";
+              const phone = item.celular || item.telefone || item.whatsapp;
               return (
                 <Grid size={{ xs: 12, sm: 6, xl: 4 }} key={item.id}>
                   <Card
@@ -211,23 +202,22 @@ export default function Proprietarios() {
                     sx={{ height: "100%", cursor: "pointer", transition: "transform .2s ease", "&:hover": { transform: "translateY(-3px)", boxShadow: 8 } }}
                     onClick={() => navigate(`/proprietarios/${item.id}`)}
                   >
-                    <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap sx={{ mb: 1 }}>
-                      <Chip size="small" label={status.label} color={status.color} sx={{ fontWeight: 750 }} />
-                      <Chip size="small" variant="outlined" label={optionLabel(TIPOS_PESSOA, item.tipoPessoa)} />
-                    </Stack>
                     <Typography variant="h6" fontWeight={850} noWrap>{item.nome}</Typography>
                     <Typography color="text.secondary" variant="body2" noWrap>
-                      {item.email || "Sem e-mail"} · {item.telefone || "Sem telefone"}
+                      {document} · {phone ? formatPhone(phone) : "Sem telefone"}
+                    </Typography>
+                    <Typography color="text.secondary" variant="body2" noWrap>
+                      {item.email || "Sem e-mail"}
                     </Typography>
                     <Typography color="text.secondary" variant="body2" sx={{ mt: 0.5 }}>
                       {[item.cidade, item.estado].filter(Boolean).join(" — ") || "Sem cidade"}
                     </Typography>
                     <Stack direction="row" spacing={1} alignItems="center" sx={{ mt: 1.5 }} color="text.secondary">
                       <HomeWorkOutlined fontSize="small" />
-                      <Typography variant="body2">{item._count?.imoveisProprietario || 0} imóvel(is)</Typography>
+                      <Typography variant="body2">{item._count?.properties || 0} imóvel(is)</Typography>
                     </Stack>
                     <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mt: 2, pt: 1.5, borderTop: 1, borderColor: "divider" }}>
-                      <Typography variant="body2" color="text.secondary">{item.corretor?.nome || "Sem corretor"}</Typography>
+                      <Typography variant="body2" color="text.secondary">{item.ativo === false ? "Inativo" : "Ativo"}</Typography>
                       <Box onClick={(event) => event.stopPropagation()}>
                         <Tooltip title="Ver"><IconButton onClick={() => navigate(`/proprietarios/${item.id}`)}><VisibilityOutlined /></IconButton></Tooltip>
                         {item.ativo !== false && (

@@ -8,7 +8,7 @@ export async function buscarCep(cepRaw) {
   if (data.erro) return null;
   return {
     cep,
-    endereco: data.logradouro || "",
+    rua: data.logradouro || "",
     bairro: data.bairro || "",
     cidade: data.localidade || "",
     estado: data.uf || "",

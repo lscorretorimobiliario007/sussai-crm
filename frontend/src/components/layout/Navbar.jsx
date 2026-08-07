@@ -1,14 +1,15 @@
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   AppBar,
   Avatar,
+  Badge,
   Box,
-  Chip,
-  CircularProgress,
   IconButton,
+  InputAdornment,
   Menu,
   MenuItem,
   Stack,
+  TextField,
   Toolbar,
   Tooltip,
   Typography,
@@ -18,25 +19,51 @@ import {
   LightModeOutlined,
   Logout,
   Menu as MenuIcon,
-  PlayCircleOutlined,
-  Refresh,
+  NotificationsNoneOutlined,
+  PersonOutlined,
+  Search,
   TourOutlined,
 } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../../context/AuthContext";
-import { useThemeMode } from "../../context/ThemeModeContext";
-import { useToast } from "../ui/Toast";
-import { resetTourFlag } from "../tour/GuidedTour";
+import { useAuth } from "../../context/auth";
+import { useThemeMode } from "../../context/themeMode";
+import api from "../../api/axios";
 import { DRAWER_WIDTH } from "./Sidebar";
+
+async function fetchUnreadCount() {
+  try {
+    const { data } = await api.get("/notificacoes");
+    const list = Array.isArray(data) ? data : data?.data || data?.notificacoes || [];
+    return list.filter((item) => !item.lida).length;
+  } catch {
+    try {
+      const { data } = await api.get("/agenda/notificacoes");
+      const list = Array.isArray(data) ? data : data?.data || data?.notificacoes || [];
+      return list.filter((item) => !item.lida).length;
+    } catch {
+      return 0;
+    }
+  }
+}
 
 export default function Navbar({ title, onMenuClick, onStartTour }) {
   const navigate = useNavigate();
-  const { usuario, logout, resetarDemo } = useAuth();
+  const { usuario, logout } = useAuth();
   const { mode, toggleMode } = useThemeMode();
-  const toast = useToast();
   const [anchor, setAnchor] = useState(null);
-  const [resetting, setResetting] = useState(false);
-  const isDemo = Boolean(usuario?.demo) || usuario?.email === "demo@sussai.com.br";
+  const [search, setSearch] = useState("");
+  const [unread, setUnread] = useState(0);
+
+  const loadUnread = useCallback(async () => {
+    const count = await fetchUnreadCount();
+    setUnread(count);
+  }, []);
+
+  useEffect(() => {
+    loadUnread();
+    const timer = window.setInterval(loadUnread, 60000);
+    return () => window.clearInterval(timer);
+  }, [loadUnread]);
 
   const handleLogout = () => {
     setAnchor(null);
@@ -44,20 +71,10 @@ export default function Navbar({ title, onMenuClick, onStartTour }) {
     navigate("/login", { replace: true });
   };
 
-  const handleResetDemo = async () => {
-    setResetting(true);
-    try {
-      await resetarDemo();
-      resetTourFlag();
-      toast.success("Dados de demonstração reiniciados.");
-      onStartTour?.();
-      navigate("/", { replace: true });
-      window.setTimeout(() => window.location.reload(), 400);
-    } catch (error) {
-      toast.error(error.response?.data?.erro || "Não foi possível reiniciar a demonstração.");
-    } finally {
-      setResetting(false);
-    }
+  const handleSearch = (event) => {
+    event.preventDefault();
+    const q = search.trim();
+    navigate(q ? `/pesquisa?q=${encodeURIComponent(q)}` : "/pesquisa");
   };
 
   return (
@@ -74,42 +91,46 @@ export default function Navbar({ title, onMenuClick, onStartTour }) {
         borderColor: "divider",
       }}
     >
-      <Toolbar sx={{ minHeight: { xs: 64, md: 72 }, gap: 1 }}>
+      <Toolbar sx={{ minHeight: { xs: 64, md: 72 }, gap: 1.25 }}>
         <IconButton onClick={onMenuClick} sx={{ display: { md: "none" } }} aria-label="Abrir menu">
           <MenuIcon />
         </IconButton>
-        <Box sx={{ flexGrow: 1, minWidth: 0 }}>
+
+        <Box sx={{ minWidth: 0, display: { xs: "none", lg: "block" }, maxWidth: 220 }}>
           <Typography variant="h6" noWrap>{title}</Typography>
-          <Typography variant="caption" color="text.secondary" sx={{ display: { xs: "none", sm: "block" } }} noWrap>
-            {usuario?.empresaNome}
+          <Typography variant="caption" color="text.secondary" noWrap>
+            {usuario?.empresa?.nome}
           </Typography>
         </Box>
 
-        <Stack direction="row" spacing={0.75} alignItems="center">
-          {isDemo && (
-            <Chip
-              data-tour="demo-mode"
-              icon={resetting ? <CircularProgress size={14} color="inherit" /> : <PlayCircleOutlined sx={{ fontSize: 16 }} />}
-              label={resetting ? "Reiniciando…" : "Modo Demonstração"}
-              onClick={handleResetDemo}
-              onDelete={handleResetDemo}
-              deleteIcon={
-                <Tooltip title="Reiniciar dados fictícios">
-                  <Refresh sx={{ fontSize: 16 }} />
-                </Tooltip>
-              }
-              sx={{
-                display: { xs: "none", sm: "flex" },
-                fontWeight: 750,
-                bgcolor: (theme) => theme.palette.mode === "dark" ? "rgba(37,99,235,.22)" : "rgba(37,99,235,.10)",
-                color: "primary.main",
-                border: "1px solid",
-                borderColor: "primary.main",
-                "& .MuiChip-icon": { color: "primary.main" },
-                "& .MuiChip-deleteIcon": { color: "primary.main" },
-              }}
-            />
-          )}
+        <Box
+          component="form"
+          onSubmit={handleSearch}
+          sx={{ flexGrow: 1, maxWidth: 520, mx: { xs: 0, md: 1 } }}
+        >
+          <TextField
+            size="small"
+            fullWidth
+            placeholder="Pesquisar no CRM..."
+            value={search}
+            onChange={(event) => setSearch(event.target.value)}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <Search fontSize="small" />
+                </InputAdornment>
+              ),
+            }}
+            sx={{
+              "& .MuiOutlinedInput-root": {
+                borderRadius: 3,
+                bgcolor: (theme) => theme.palette.mode === "dark" ? "rgba(255,255,255,.04)" : "rgba(15,23,42,.03)",
+              },
+            }}
+          />
+        </Box>
+
+        <Stack direction="row" spacing={0.5} alignItems="center">
           <Tooltip title="Iniciar tour guiado">
             <IconButton onClick={() => onStartTour?.()} aria-label="Tour guiado" data-tour="tour-start">
               <TourOutlined />
@@ -120,6 +141,13 @@ export default function Navbar({ title, onMenuClick, onStartTour }) {
               {mode === "light" ? <DarkModeOutlined /> : <LightModeOutlined />}
             </IconButton>
           </Tooltip>
+          <Tooltip title="Notificações">
+            <IconButton onClick={() => navigate("/notificacoes")} aria-label="Notificações">
+              <Badge badgeContent={unread} color="error" max={99}>
+                <NotificationsNoneOutlined />
+              </Badge>
+            </IconButton>
+          </Tooltip>
           <IconButton onClick={(event) => setAnchor(event.currentTarget)} aria-label="Menu do usuário">
             <Avatar sx={{ width: 34, height: 34, bgcolor: "primary.main", fontSize: 14, fontWeight: 750 }}>
               {usuario?.nome?.slice(0, 2).toUpperCase()}
@@ -127,23 +155,25 @@ export default function Navbar({ title, onMenuClick, onStartTour }) {
           </IconButton>
         </Stack>
 
-        <Menu anchorEl={anchor} open={Boolean(anchor)} onClose={() => setAnchor(null)} slotProps={{ paper: { sx: { mt: 1, minWidth: 220 } } }}>
+        <Menu
+          anchorEl={anchor}
+          open={Boolean(anchor)}
+          onClose={() => setAnchor(null)}
+          slotProps={{ paper: { sx: { mt: 1, minWidth: 220 } } }}
+        >
           <Box sx={{ px: 2, py: 1 }}>
             <Typography variant="body2" fontWeight={700}>{usuario?.nome}</Typography>
             <Typography variant="caption" color="text.secondary">{usuario?.email}</Typography>
-            {isDemo && (
-              <Chip size="small" label="Demo" color="primary" sx={{ mt: 1, fontWeight: 700 }} />
-            )}
           </Box>
-          {isDemo && (
-            <MenuItem onClick={() => { setAnchor(null); handleResetDemo(); }} disabled={resetting}>
-              <Refresh fontSize="small" sx={{ mr: 1.5 }} />Reiniciar demonstração
-            </MenuItem>
-          )}
+          <MenuItem onClick={() => { setAnchor(null); navigate("/perfil"); }}>
+            <PersonOutlined fontSize="small" sx={{ mr: 1.5 }} />Meu perfil
+          </MenuItem>
           <MenuItem onClick={() => { setAnchor(null); onStartTour?.(); }}>
             <TourOutlined fontSize="small" sx={{ mr: 1.5 }} />Tour guiado
           </MenuItem>
-          <MenuItem onClick={handleLogout}><Logout fontSize="small" sx={{ mr: 1.5 }} />Sair</MenuItem>
+          <MenuItem onClick={handleLogout}>
+            <Logout fontSize="small" sx={{ mr: 1.5 }} />Sair
+          </MenuItem>
         </Menu>
       </Toolbar>
     </AppBar>

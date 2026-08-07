@@ -26,10 +26,19 @@ export class AllExceptionsFilter implements ExceptionFilter {
           ? { message: exceptionResponse }
           : (exceptionResponse as Record<string, unknown>);
 
+      const message = payload.message ?? exception.message;
+      const erro =
+        typeof payload.erro === 'string'
+          ? payload.erro
+          : Array.isArray(message)
+            ? message.join(', ')
+            : message;
+
       return response.status(status).json({
         statusCode: status,
         error: payload.error ?? HttpStatus[status] ?? 'Error',
-        message: payload.message ?? exception.message,
+        message,
+        erro,
         timestamp: new Date().toISOString(),
       });
     }
@@ -38,8 +47,8 @@ export class AllExceptionsFilter implements ExceptionFilter {
       const message =
         exception.code === 'LIMIT_FILE_SIZE'
           ? 'Cada imagem deve ter no máximo 10 MB'
-          : exception.code === 'LIMIT_FILE_COUNT'
-            || exception.code === 'LIMIT_UNEXPECTED_FILE'
+          : exception.code === 'LIMIT_FILE_COUNT' ||
+              exception.code === 'LIMIT_UNEXPECTED_FILE'
             ? 'Limite de upload de imagens excedido'
             : 'Falha no upload do arquivo';
 

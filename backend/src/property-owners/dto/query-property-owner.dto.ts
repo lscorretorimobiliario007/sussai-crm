@@ -38,20 +38,6 @@ export class QueryPropertyOwnerDto {
   cidade?: string;
 
   @IsOptional()
-  @IsString()
-  tipoPessoa?: string;
-
-  @IsOptional()
-  @IsString()
-  status?: string;
-
-  @IsOptional()
-  @Type(() => Number)
-  @IsInt()
-  @Min(1)
-  corretorId?: number;
-
-  @IsOptional()
   @Transform(toOptionalBoolean)
   @IsBoolean()
   ativo?: boolean = true;

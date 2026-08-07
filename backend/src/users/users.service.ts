@@ -3,14 +3,15 @@ import { Prisma, UserProfile } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateUserDto } from './dto/create-user.dto';
+import type { AuthUser } from '../auth/types/auth-user.type';
 
 @Injectable()
 export class UsersService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async create(data: CreateUserDto) {
+  async create(user: AuthUser, data: CreateUserDto) {
     const email = data.email.trim().toLowerCase();
-    const senhaCriptografada = await bcrypt.hash(data.senha, 10);
+    const senhaCriptografada = await bcrypt.hash(data.senha, 12);
 
     try {
       const usuario = await this.prisma.usuario.create({
@@ -18,7 +19,8 @@ export class UsersService {
           nome: data.nome.trim(),
           email,
           senha: senhaCriptografada,
-          empresaId: data.empresaId,
+          // Always scope to the authenticated admin's tenant (ignore client-supplied empresaId)
+          empresaId: user.empresaId,
           perfil: data.perfil ?? UserProfile.CORRETOR,
         },
         select: {
@@ -35,8 +37,8 @@ export class UsersService {
       return usuario;
     } catch (error) {
       if (
-        error instanceof Prisma.PrismaClientKnownRequestError
-        && error.code === 'P2002'
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === 'P2002'
       ) {
         throw new ConflictException('Já existe um usuário com este e-mail');
       }

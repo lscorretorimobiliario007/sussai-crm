@@ -15,30 +15,18 @@ import {
   formatCpf,
   formatPhone,
 } from "../../utils/clientes";
+import {
+  createEmptyPropertyOwner,
+  createPropertyOwnerPayload,
+  getPropertyOwnerError,
+} from "../../utils/proprietarios";
 import { isValidCnpj, isValidCpf } from "../../utils/validators";
 import Button from "../ui/Button";
 import Input from "../ui/Input";
 import Modal from "../ui/Modal";
-import { useToast } from "../ui/Toast";
+import { useToast } from "../../context/toast";
 
-const emptyOwner = {
-  nome: "",
-  cpf: "",
-  cnpj: "",
-  rg: "",
-  telefone: "",
-  celular: "",
-  whatsapp: "",
-  email: "",
-  cep: "",
-  rua: "",
-  numero: "",
-  complemento: "",
-  bairro: "",
-  cidade: "",
-  estado: "",
-  observacoes: "",
-};
+const emptyOwner = createEmptyPropertyOwner();
 
 function documentLabel(owner) {
   if (owner.cpf) return formatCpf(owner.cpf);
@@ -113,7 +101,7 @@ export default function PropertyOwnerSelector({
       setForm((current) => ({
         ...current,
         cep: formatCep(address.cep),
-        rua: address.endereco || current.rua,
+        rua: address.rua || current.rua,
         bairro: address.bairro || current.bairro,
         cidade: address.cidade || current.cidade,
         estado: address.estado || current.estado,
@@ -151,15 +139,7 @@ export default function PropertyOwnerSelector({
 
     setSaving(true);
     try {
-      const payload = Object.fromEntries(
-        Object.entries(form).map(([key, value]) => {
-          const normalized = ["cpf", "cnpj", "telefone", "celular", "whatsapp", "cep"]
-            .includes(key)
-            ? value.replace(/\D/g, "")
-            : value.trim();
-          return [key, normalized || null];
-        })
-      );
+      const payload = createPropertyOwnerPayload(form);
       const { data } = await api.post("/proprietarios", payload);
       onChange(data);
       setOptions((current) => [data, ...current.filter((item) => item.id !== data.id)]);
@@ -168,11 +148,7 @@ export default function PropertyOwnerSelector({
       setForm(emptyOwner);
       setErrors({});
     } catch (requestError) {
-      const message = requestError.response?.data?.message || requestError.response?.data?.erro;
-      toast.error(
-        (Array.isArray(message) ? message.join(", ") : message)
-        || "Erro ao cadastrar proprietário."
-      );
+      toast.error(getPropertyOwnerError(requestError, "Erro ao cadastrar proprietário."));
     } finally {
       setSaving(false);
     }

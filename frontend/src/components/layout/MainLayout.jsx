@@ -2,8 +2,9 @@ import { useEffect, useState } from "react";
 import { Box, Toolbar } from "@mui/material";
 import Sidebar, { DRAWER_WIDTH } from "./Sidebar";
 import Navbar from "./Navbar";
-import GuidedTour, { shouldAutoStartTour } from "../tour/GuidedTour";
-import { useAuth } from "../../context/AuthContext";
+import GuidedTour from "../tour/GuidedTour";
+import { useAuth } from "../../context/auth";
+import { shouldAutoStartTour } from "../../utils/tour";
 
 export default function MainLayout({ title, children }) {
   const { usuario } = useAuth();

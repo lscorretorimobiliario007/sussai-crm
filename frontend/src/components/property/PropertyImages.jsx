@@ -5,7 +5,7 @@ import { compressPropertyImage } from "../../utils/imageCompression";
 import ImovelGallery from "../imoveis/ImovelGallery";
 import ConfirmDialog from "../ui/ConfirmDialog";
 import Loading from "../ui/Loading";
-import { useToast } from "../ui/Toast";
+import { useToast } from "../../context/toast";
 
 const MAX_IMAGES = 30;
 const MAX_IMAGE_SIZE = 10 * 1024 * 1024;

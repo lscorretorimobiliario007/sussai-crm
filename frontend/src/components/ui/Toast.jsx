@@ -1,7 +1,8 @@
-import { createContext, useContext, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { Alert, Snackbar } from "@mui/material";
+import { ToastContext } from "../../context/toast";
 
-const ToastContext = createContext(null);
+export { useToast } from "../../context/toast";
 
 export function ToastProvider({ children }) {
   const [toast, setToast] = useState({ open: false, message: "", severity: "success" });
@@ -34,10 +35,4 @@ export function ToastProvider({ children }) {
       </Snackbar>
     </ToastContext.Provider>
   );
-}
-
-export function useToast() {
-  const context = useContext(ToastContext);
-  if (!context) throw new Error("useToast deve ser usado dentro de ToastProvider");
-  return context;
 }

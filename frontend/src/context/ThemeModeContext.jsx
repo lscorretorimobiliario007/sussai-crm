@@ -1,8 +1,7 @@
-import { createContext, useContext, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { CssBaseline, ThemeProvider } from "@mui/material";
 import { createAppTheme } from "../theme/theme";
-
-const ThemeModeContext = createContext(null);
+import { ThemeModeContext } from "./themeMode";
 
 export function ThemeModeProvider({ children }) {
   const [mode, setMode] = useState(() => localStorage.getItem("sussai-theme") || "light");
@@ -26,10 +25,4 @@ export function ThemeModeProvider({ children }) {
       </ThemeProvider>
     </ThemeModeContext.Provider>
   );
-}
-
-export function useThemeMode() {
-  const context = useContext(ThemeModeContext);
-  if (!context) throw new Error("useThemeMode deve ser usado dentro de ThemeModeProvider");
-  return context;
 }

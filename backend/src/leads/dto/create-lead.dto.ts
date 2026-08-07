@@ -26,6 +26,12 @@ export class CreateLeadDto {
   @Min(1)
   assignedUserId?: number | null;
 
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  stageId?: number | null;
+
   @IsString()
   @IsNotEmpty()
   @MaxLength(160)

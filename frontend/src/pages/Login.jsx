@@ -6,7 +6,6 @@ import {
   Divider,
   IconButton,
   InputAdornment,
-  Link,
   Stack,
   Typography,
 } from "@mui/material";
@@ -21,13 +20,13 @@ import {
   Visibility,
   VisibilityOff,
 } from "@mui/icons-material";
-import { Link as RouterLink, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import Button from "../components/ui/Button";
 import Card from "../components/ui/Card";
 import Input from "../components/ui/Input";
-import { useAuth } from "../context/AuthContext";
-import { useThemeMode } from "../context/ThemeModeContext";
-import { resetTourFlag } from "../components/tour/GuidedTour";
+import { useAuth } from "../context/auth";
+import { useThemeMode } from "../context/themeMode";
+import { resetTourFlag } from "../utils/tour";
 
 const benefits = [
   "Imóveis, clientes e contratos em um só lugar",
@@ -54,7 +53,11 @@ export default function Login() {
       await login(email.trim().toLowerCase(), senha);
       navigate("/");
     } catch (error) {
-      setErro(error.response?.data?.erro || "Não foi possível entrar. Tente novamente.");
+      setErro(
+        error.response?.data?.erro
+          || error.response?.data?.message
+          || "Não foi possível entrar. Tente novamente.",
+      );
     } finally {
       setLoading(false);
     }
@@ -68,7 +71,11 @@ export default function Login() {
       await entrarDemo({ reset: false });
       navigate("/");
     } catch (error) {
-      setErro(error.response?.data?.erro || "Não foi possível abrir o modo demonstração.");
+      setErro(
+        error.response?.data?.erro
+          || error.response?.data?.message
+          || "Não foi possível abrir o modo demonstração.",
+      );
     } finally {
       setDemoLoading(false);
     }
@@ -198,10 +205,6 @@ export default function Login() {
               Acesso rápido com dados fictícios realistas · demo@sussai.com.br
             </Typography>
 
-            <Typography variant="body2" sx={{ mt: 3, textAlign: "center", color: "text.secondary" }}>
-              Ainda não possui uma conta?{" "}
-              <Link component={RouterLink} to="/registrar" fontWeight={750} underline="hover">Criar empresa grátis</Link>
-            </Typography>
           </Card>
         </Box>
       </Box>

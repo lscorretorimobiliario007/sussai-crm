@@ -91,15 +91,7 @@ export class PropertyOwnersService {
     ]);
 
     return {
-      data: rows.map((item) => ({
-        ...item,
-        tipoPessoa: item.cnpj ? 'PJ' : 'PF',
-        status: item.ativo ? 'CLIENTE' : 'INATIVO',
-        cpfCnpj: item.cpf || item.cnpj,
-        endereco: item.rua,
-        notas: item.observacoes,
-        _count: { imoveisProprietario: item._count.properties },
-      })),
+      data: rows,
       meta: {
         page,
         limit,
@@ -142,7 +134,7 @@ export class PropertyOwnersService {
       take: 30,
     });
 
-    return { proprietarios, corretores: [] };
+    return { proprietarios };
   }
 
   async dashboard(empresaId: number) {
@@ -194,14 +186,6 @@ export class PropertyOwnersService {
     );
     return {
       ...owner,
-      cpfCnpj: owner.cpf || owner.cnpj,
-      endereco: owner.rua,
-      notas: owner.observacoes,
-      imoveisProprietario: owner.properties,
-      dadosBancarios: [],
-      documentos: [],
-      anotacoes: [],
-      historico: [],
       dashboard: {
         imoveis: activeProperties.length,
         contratosAtivos: 0,

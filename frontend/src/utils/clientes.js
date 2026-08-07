@@ -1,12 +1,52 @@
+export function formatPhone(value) {
+  const digits = String(value || "").replace(/\D/g, "").slice(0, 11);
+  if (digits.length <= 10) {
+    return digits
+      .replace(/^(\d{2})(\d)/, "($1) $2")
+      .replace(/(\d{4})(\d)/, "$1-$2");
+  }
+  return digits
+    .replace(/^(\d{2})(\d)/, "($1) $2")
+    .replace(/(\d{5})(\d)/, "$1-$2");
+}
+
+export function formatCpf(value) {
+  return String(value || "")
+    .replace(/\D/g, "")
+    .slice(0, 11)
+    .replace(/^(\d{3})(\d)/, "$1.$2")
+    .replace(/^(\d{3})\.(\d{3})(\d)/, "$1.$2.$3")
+    .replace(/\.(\d{3})(\d)/, ".$1-$2");
+}
+
+export function formatCnpj(value) {
+  return String(value || "")
+    .replace(/\D/g, "")
+    .slice(0, 14)
+    .replace(/^(\d{2})(\d)/, "$1.$2")
+    .replace(/^(\d{2})\.(\d{3})(\d)/, "$1.$2.$3")
+    .replace(/\.(\d{3})(\d)/, ".$1/$2")
+    .replace(/(\d{4})(\d)/, "$1-$2");
+}
+
+export function formatCpfCnpj(value) {
+  const digits = String(value || "").replace(/\D/g, "");
+  if (digits.length > 11) return formatCnpj(digits);
+  return formatCpf(digits);
+}
+
+export function optionLabel(options, value) {
+  if (Array.isArray(options)) {
+    return options.find((item) => String(item.value) === String(value))?.label || value || "—";
+  }
+  return options?.[value]?.label || value || "—";
+}
+
 export const TIPOS_CLIENTE = [
-  { value: "INQUILINO", label: "Locatário" },
+  { value: "PROPRIETARIO", label: "Proprietário" },
+  { value: "INQUILINO", label: "Inquilino" },
   { value: "COMPRADOR", label: "Comprador" },
   { value: "LEAD", label: "Lead" },
-];
-
-export const TIPOS_CLIENTE_TODOS = [
-  { value: "PROPRIETARIO", label: "Proprietário" },
-  ...TIPOS_CLIENTE,
 ];
 
 export const TIPOS_PESSOA = [
@@ -14,20 +54,11 @@ export const TIPOS_PESSOA = [
   { value: "PJ", label: "Pessoa jurídica" },
 ];
 
-export const STATUS_CLIENTE = [
+export const STATUS_CLIENTE_CRM = [
   { value: "PROSPECTO", label: "Prospecto", color: "default" },
   { value: "QUALIFICADO", label: "Qualificado", color: "info" },
   { value: "NEGOCIACAO", label: "Negociação", color: "warning" },
   { value: "CLIENTE", label: "Cliente", color: "success" },
-  { value: "INATIVO", label: "Inativo", color: "default" },
-  { value: "PERDIDO", label: "Perdido", color: "error" },
-];
-
-export const STATUS_CLIENTE_CRM = [
-  { value: "PROSPECTO", label: "Novo", color: "default" },
-  { value: "QUALIFICADO", label: "Em atendimento", color: "info" },
-  { value: "NEGOCIACAO", label: "Negociação", color: "warning" },
-  { value: "CLIENTE", label: "Fechado", color: "success" },
   { value: "INATIVO", label: "Inativo", color: "default" },
   { value: "PERDIDO", label: "Perdido", color: "error" },
 ];
@@ -37,6 +68,12 @@ export const INTERESSES_CLIENTE = [
   { value: "VENDA", label: "Venda" },
   { value: "LOCACAO", label: "Locação" },
   { value: "ADMINISTRACAO", label: "Administração" },
+];
+
+export const ORDENACOES_CLIENTE = [
+  { value: "nome", label: "Nome (A–Z)" },
+  { value: "recentes", label: "Mais recentes" },
+  { value: "antigos", label: "Mais antigos" },
 ];
 
 export const TIPOS_CONTATO = [
@@ -88,15 +125,9 @@ export const STATUS_PROPOSTA = [
   { value: "CANCELADA", label: "Cancelada" },
 ];
 
-export const ORDENACOES_CLIENTE = [
-  { value: "nome", label: "Nome A–Z" },
-  { value: "recentes", label: "Mais recentes" },
-  { value: "antigos", label: "Mais antigos" },
-];
-
 export const HISTORY_LABELS = {
-  CRIADO: "Cliente cadastrado",
-  ATUALIZADO: "Informações atualizadas",
+  CRIADO: "Cliente criado",
+  ATUALIZADO: "Dados atualizados",
   DESATIVADO: "Cliente desativado",
   REATIVADO: "Cliente reativado",
   ANOTACAO: "Anotação adicionada",
@@ -106,63 +137,12 @@ export const HISTORY_LABELS = {
   AVATAR_ATUALIZADO: "Avatar atualizado",
   FAVORITO_ADICIONADO: "Imóvel favoritado",
   FAVORITO_REMOVIDO: "Favorito removido",
-  COMPARTILHADO: "Cadastro compartilhado",
+  COMPARTILHADO: "Cliente compartilhado",
   VISITA_REGISTRADA: "Visita registrada",
   PROPOSTA_REGISTRADA: "Proposta registrada",
 };
 
-export function optionLabel(options, value) {
-  return options.find((option) => option.value === value)?.label || value || "—";
-}
-
-export function statusMeta(value) {
-  return STATUS_CLIENTE.find((item) => item.value === value) || { label: value, color: "default" };
-}
-
 export function crmStatusMeta(value) {
-  return STATUS_CLIENTE_CRM.find((item) => item.value === value) || { label: value, color: "default" };
-}
-
-export function formatCpfCnpj(value) {
-  const digits = String(value || "").replace(/\D/g, "").slice(0, 14);
-  if (digits.length <= 11) {
-    return digits
-      .replace(/^(\d{3})(\d)/, "$1.$2")
-      .replace(/^(\d{3})\.(\d{3})(\d)/, "$1.$2.$3")
-      .replace(/\.(\d{3})(\d)/, ".$1-$2");
-  }
-  return digits
-    .replace(/^(\d{2})(\d)/, "$1.$2")
-    .replace(/^(\d{2})\.(\d{3})(\d)/, "$1.$2.$3")
-    .replace(/\.(\d{3})(\d)/, ".$1/$2")
-    .replace(/(\d{4})(\d)/, "$1-$2");
-}
-
-export function formatPhone(value) {
-  const digits = String(value || "").replace(/\D/g, "").slice(0, 11);
-  if (digits.length <= 10) {
-    return digits
-      .replace(/^(\d{2})(\d)/, "($1) $2")
-      .replace(/(\d{4})(\d)/, "$1-$2");
-  }
-  return digits
-    .replace(/^(\d{2})(\d)/, "($1) $2")
-    .replace(/(\d{5})(\d)/, "$1-$2");
-}
-
-export function formatCpf(value) {
-  const digits = String(value || "").replace(/\D/g, "").slice(0, 11);
-  return digits
-    .replace(/^(\d{3})(\d)/, "$1.$2")
-    .replace(/^(\d{3})\.(\d{3})(\d)/, "$1.$2.$3")
-    .replace(/\.(\d{3})(\d)/, ".$1-$2");
-}
-
-export function formatCnpj(value) {
-  const digits = String(value || "").replace(/\D/g, "").slice(0, 14);
-  return digits
-    .replace(/^(\d{2})(\d)/, "$1.$2")
-    .replace(/^(\d{2})\.(\d{3})(\d)/, "$1.$2.$3")
-    .replace(/\.(\d{3})(\d)/, ".$1/$2")
-    .replace(/(\d{4})(\d)/, "$1-$2");
+  return STATUS_CLIENTE_CRM.find((item) => item.value === value)
+    || { value, label: value || "—", color: "default" };
 }

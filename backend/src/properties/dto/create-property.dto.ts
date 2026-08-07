@@ -43,7 +43,9 @@ export class CreatePropertyDto {
   @Min(0.01, { message: 'Informe o valor de venda' })
   valorVenda?: number | null;
 
-  @ValidateIf((o: CreatePropertyDto) => o.finalidade === FinalidadeImovel.LOCACAO)
+  @ValidateIf(
+    (o: CreatePropertyDto) => o.finalidade === FinalidadeImovel.LOCACAO,
+  )
   @Type(() => Number)
   @IsNumber({ maxDecimalPlaces: 2 })
   @Min(0.01, { message: 'Informe o valor de locação' })

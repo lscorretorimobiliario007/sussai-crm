@@ -161,6 +161,18 @@ server {
 
   client_max_body_size 25m;
 
+  # Fotos públicas (Nest serveStatic em /uploads) — manter fora do /api
+  location /uploads/ {
+    proxy_pass http://127.0.0.1:3000/uploads/;
+    proxy_http_version 1.1;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    expires 7d;
+    add_header Cache-Control "public";
+  }
+
   location / {
     proxy_pass http://127.0.0.1:3000;
     proxy_http_version 1.1;
@@ -249,10 +261,19 @@ Plataformas alternativas: Cloudflare Pages, S3+CloudFront, Netlify — desde que
 
 ```env
 NEXT_PUBLIC_SITE_URL=https://www.topconceicao.com.br
-NEXT_PUBLIC_SUSSAI_API_URL=https://api.topconceicao.com.br
-SUSSAI_API_URL=https://api.topconceicao.com.br
+NEXT_PUBLIC_SUSSAI_API_URL=https://api.topconceicao.com.br/api
+SUSSAI_API_URL=https://api.topconceicao.com.br/api
 NEXT_PUBLIC_WHATSAPP=5511XXXXXXXXX
 NEXT_PUBLIC_GOOGLE_MAPS_EMBED_KEY=
+```
+
+> **Obrigatório:** a URL da API deve terminar em `/api` (prefixo Nest). Fotos usam a origem sem `/api` (`https://api.topconceicao.com.br/uploads/...`), montada automaticamente pelo `mediaUrl` do site.
+
+No backend, configure também:
+
+```env
+PUBLIC_BASE_URL=https://api.topconceicao.com.br
+SITE_EMPRESA_ID=1
 ```
 
 | Variável | Uso |

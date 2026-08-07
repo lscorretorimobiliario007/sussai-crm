@@ -68,8 +68,8 @@ export class PipelineService {
     await this.ensureDefaultStages(empresaId);
 
     const ordem =
-      dto.ordem
-      ?? ((
+      dto.ordem ??
+      ((
         await this.prisma.pipelineStage.aggregate({
           where: { empresaId },
           _max: { ordem: true },
@@ -88,8 +88,8 @@ export class PipelineService {
       });
     } catch (error) {
       if (
-        error instanceof Prisma.PrismaClientKnownRequestError
-        && error.code === 'P2002'
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === 'P2002'
       ) {
         throw new ConflictException('Já existe uma etapa com esta ordem');
       }
@@ -116,8 +116,8 @@ export class PipelineService {
       });
     } catch (error) {
       if (
-        error instanceof Prisma.PrismaClientKnownRequestError
-        && error.code === 'P2002'
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === 'P2002'
       ) {
         throw new ConflictException('Já existe uma etapa com esta ordem');
       }

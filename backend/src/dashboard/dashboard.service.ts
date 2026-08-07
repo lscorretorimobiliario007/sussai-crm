@@ -9,6 +9,7 @@ export class DashboardService {
     const [
       totalImoveis,
       imoveisDisponiveis,
+      totalProprietarios,
       totalLeads,
       totalUsuarios,
       leadsRecentes,
@@ -25,6 +26,13 @@ export class DashboardService {
           empresaId,
           ativo: true,
           publicado: true,
+        },
+      }),
+
+      this.prisma.propertyOwner.count({
+        where: {
+          empresaId,
+          ativo: true,
         },
       }),
 
@@ -88,7 +96,7 @@ export class DashboardService {
         totalImoveis,
         imoveisDisponiveis,
         totalClientes: totalLeads,
-        totalProprietarios: 0,
+        totalProprietarios,
         totalCorretores: totalUsuarios,
         leadsAtivos: totalLeads,
         contratosAtivos: 0,
