@@ -2,10 +2,25 @@ import { LeadStatus } from '@prisma/client';
 
 export const DEFAULT_PIPELINE_STAGES = [
   { nome: 'Novo', ordem: 1, cor: '#6366f1', status: LeadStatus.NOVO },
-  { nome: 'Primeiro Contato', ordem: 2, cor: '#8b5cf6', status: LeadStatus.PRIMEIRO_CONTATO },
-  { nome: 'Visita Agendada', ordem: 3, cor: '#a855f7', status: LeadStatus.VISITA_AGENDADA },
+  {
+    nome: 'Primeiro Contato',
+    ordem: 2,
+    cor: '#8b5cf6',
+    status: LeadStatus.PRIMEIRO_CONTATO,
+  },
+  {
+    nome: 'Visita Agendada',
+    ordem: 3,
+    cor: '#a855f7',
+    status: LeadStatus.VISITA_AGENDADA,
+  },
   { nome: 'Proposta', ordem: 4, cor: '#f59e0b', status: LeadStatus.PROPOSTA },
-  { nome: 'Negociação', ordem: 5, cor: '#f97316', status: LeadStatus.NEGOCIACAO },
+  {
+    nome: 'Negociação',
+    ordem: 5,
+    cor: '#f97316',
+    status: LeadStatus.NEGOCIACAO,
+  },
   { nome: 'Fechado', ordem: 6, cor: '#22c55e', status: LeadStatus.FECHADO },
   { nome: 'Perdido', ordem: 7, cor: '#ef4444', status: LeadStatus.PERDIDO },
 ] as const;

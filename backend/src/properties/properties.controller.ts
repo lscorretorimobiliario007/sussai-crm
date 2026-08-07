@@ -34,10 +34,7 @@ export class PropertiesController {
   }
 
   @Get()
-  findAll(
-    @CurrentUser() user: AuthUser,
-    @Query() query: QueryPropertyDto,
-  ) {
+  findAll(@CurrentUser() user: AuthUser, @Query() query: QueryPropertyDto) {
     return this.propertiesService.findAll(user.empresaId, query);
   }
 
@@ -60,10 +57,7 @@ export class PropertiesController {
 
   @Delete(':id')
   @HttpCode(HttpStatus.OK)
-  remove(
-    @CurrentUser() user: AuthUser,
-    @Param('id', ParseIntPipe) id: number,
-  ) {
+  remove(@CurrentUser() user: AuthUser, @Param('id', ParseIntPipe) id: number) {
     return this.propertiesService.remove(user.empresaId, id);
   }
 }

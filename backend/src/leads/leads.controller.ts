@@ -27,18 +27,12 @@ export class LeadsController {
   constructor(private readonly leadsService: LeadsService) {}
 
   @Post()
-  create(
-    @CurrentUser() user: AuthUser,
-    @Body() createLeadDto: CreateLeadDto,
-  ) {
+  create(@CurrentUser() user: AuthUser, @Body() createLeadDto: CreateLeadDto) {
     return this.leadsService.create(user.empresaId, createLeadDto);
   }
 
   @Get()
-  findAll(
-    @CurrentUser() user: AuthUser,
-    @Query() query: QueryLeadDto,
-  ) {
+  findAll(@CurrentUser() user: AuthUser, @Query() query: QueryLeadDto) {
     return this.leadsService.findAll(user.empresaId, query);
   }
 
@@ -75,10 +69,7 @@ export class LeadsController {
 
   @Delete(':id')
   @HttpCode(HttpStatus.OK)
-  remove(
-    @CurrentUser() user: AuthUser,
-    @Param('id', ParseIntPipe) id: number,
-  ) {
+  remove(@CurrentUser() user: AuthUser, @Param('id', ParseIntPipe) id: number) {
     return this.leadsService.remove(user.empresaId, id);
   }
 }

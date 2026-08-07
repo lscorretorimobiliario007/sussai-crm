@@ -13,7 +13,10 @@ export function buildPropertySlug(input: {
   codigo?: string | null;
   id?: number | null;
 }): string {
-  const base = slugify(input.titulo) || slugify(input.codigo) || `imovel-${input.id || 'novo'}`;
+  const base =
+    slugify(input.titulo) ||
+    slugify(input.codigo) ||
+    `imovel-${input.id || 'novo'}`;
   const code = slugify(input.codigo);
   if (code && !base.includes(code)) {
     return `${base}-${code}`.slice(0, 140);
@@ -22,7 +25,11 @@ export function buildPropertySlug(input: {
 }
 
 export function buildPublicFileUrl(filePath: string): string {
-  const normalized = filePath.replace(/\\/g, '/').replace(/^\/+/, '');
+  let normalized = filePath.replace(/\\/g, '/').replace(/^\/+/, '');
+  // Evita /uploads/uploads/... quando o path já vem com prefixo
+  if (normalized.startsWith('uploads/')) {
+    normalized = normalized.slice('uploads/'.length);
+  }
   const relative = `/uploads/${normalized}`;
   const base = (process.env.PUBLIC_BASE_URL || '').replace(/\/+$/, '');
   return base ? `${base}${relative}` : relative;

@@ -1,7 +1,9 @@
-import { Test, TestingModule } from '@nestjs/testing';
+﻿import { Test, TestingModule } from '@nestjs/testing';
 import { JwtService } from '@nestjs/jwt';
 import { AuthService } from './auth.service';
 import { PrismaService } from '../prisma/prisma.service';
+import { AuditService } from '../audit/audit.service';
+import { PipelineService } from '../pipeline/pipeline.service';
 
 describe('AuthService', () => {
   let service: AuthService;
@@ -23,6 +25,19 @@ describe('AuthService', () => {
           provide: JwtService,
           useValue: {
             signAsync: jest.fn().mockResolvedValue('token'),
+          },
+        },
+        {
+          provide: AuditService,
+          useValue: {
+            log: jest.fn(),
+          },
+        },
+        {
+          provide: PipelineService,
+          useValue: {
+            ensureDefaultStages: jest.fn(),
+            getDefaultStage: jest.fn(),
           },
         },
       ],

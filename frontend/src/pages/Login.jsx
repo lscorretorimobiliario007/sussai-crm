@@ -54,7 +54,14 @@ export default function Login() {
       await login(email.trim().toLowerCase(), senha);
       navigate("/");
     } catch (error) {
-      setErro(error.response?.data?.erro || "Não foi possível entrar. Tente novamente.");
+      const apiErro =
+        error.response?.data?.erro ||
+        error.response?.data?.message ||
+        error.message;
+      setErro(
+        (Array.isArray(apiErro) ? apiErro.join(", ") : apiErro) ||
+          "Não foi possível entrar. Tente novamente.",
+      );
     } finally {
       setLoading(false);
     }

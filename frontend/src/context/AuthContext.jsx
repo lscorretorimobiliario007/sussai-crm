@@ -48,18 +48,31 @@ export function AuthProvider({ children }) {
     carregarUsuario();
   }, []);
 
+  const applySession = (data) => {
+    const token = data.access_token || data.token;
+    if (!token) {
+      throw new Error("Token de autenticação ausente na resposta");
+    }
+
+    localStorage.setItem("token", token);
+    localStorage.setItem("usuario", JSON.stringify(data.usuario));
+    setUsuario(data.usuario);
+    return data;
+  };
+
   const login = async (email, senha) => {
     const { data } = await api.post("/auth/login", {
       email,
       senha,
     });
 
-    localStorage.setItem("token", data.access_token);
-    localStorage.setItem("usuario", JSON.stringify(data.usuario));
+    return applySession(data);
+  };
 
-    setUsuario(data.usuario);
-
-    return data;
+  const entrarDemo = async ({ reset = false } = {}) => {
+    const path = reset ? "/auth/demo/reset" : "/auth/demo";
+    const { data } = await api.post(path, reset ? {} : { reset: false });
+    return applySession(data);
   };
 
   const logout = () => {
@@ -74,6 +87,7 @@ export function AuthProvider({ children }) {
         loading,
         login,
         logout,
+        entrarDemo,
       }}
     >
       {children}

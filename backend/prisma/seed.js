@@ -1,24 +1,45 @@
-import { PrismaClient } from "@prisma/client";
+﻿import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcrypt";
 
 const prisma = new PrismaClient();
 
-async function main() {
-  const senha = await bcrypt.hash("123456", 10);
+const ADMIN_EMAIL = "admin@topconceicao.com.br";
+const ADMIN_PASSWORD = "Admin@123";
 
-  const empresa = await prisma.empresa.create({
-    data: {
-      nome: "Top Conceição Imóveis",
+async function main() {
+  const senha = await bcrypt.hash(ADMIN_PASSWORD, 10);
+
+  const empresa = await prisma.empresa.upsert({
+    where: { cnpj: "12345678000190" },
+    update: {
+      nome: "Top Conceicao Imoveis",
+      email: "contato@topconceicao.com.br",
+      telefone: "(11) 4000-0000",
+      ativo: true,
+      siteAtivo: true,
+    },
+    create: {
+      nome: "Top Conceicao Imoveis",
       cnpj: "12345678000190",
       email: "contato@topconceicao.com.br",
       telefone: "(11) 4000-0000",
+      ativo: true,
+      siteAtivo: true,
     },
   });
 
-  await prisma.usuario.create({
-    data: {
+  await prisma.usuario.upsert({
+    where: { email: ADMIN_EMAIL },
+    update: {
       nome: "Administrador",
-      email: "admin@topconceicao.com.br",
+      senha,
+      perfil: "ADMIN",
+      empresaId: empresa.id,
+      ativo: true,
+    },
+    create: {
+      nome: "Administrador",
+      email: ADMIN_EMAIL,
       senha,
       perfil: "ADMIN",
       empresaId: empresa.id,
@@ -27,6 +48,8 @@ async function main() {
   });
 
   console.log("Seed executado com sucesso.");
+  console.log(`ADMIN: ${ADMIN_EMAIL} / ${ADMIN_PASSWORD}`);
+  console.log(`SITE_EMPRESA_ID should be: ${empresa.id}`);
 }
 
 main()

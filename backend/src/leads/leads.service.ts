@@ -61,7 +61,10 @@ export class LeadsService {
     private readonly pipelineService: PipelineService,
   ) {}
 
-  async create(empresaId: number, dto: CreateLeadDto): Promise<LeadWithRelations> {
+  async create(
+    empresaId: number,
+    dto: CreateLeadDto,
+  ): Promise<LeadWithRelations> {
     await this.validateRelations(empresaId, dto.propertyId, dto.assignedUserId);
 
     const defaultStage = await this.pipelineService.getDefaultStage(empresaId);
@@ -87,7 +90,10 @@ export class LeadsService {
     });
   }
 
-  async findAll(empresaId: number, query: QueryLeadDto): Promise<PaginatedLeads> {
+  async findAll(
+    empresaId: number,
+    query: QueryLeadDto,
+  ): Promise<PaginatedLeads> {
     const page = query.page ?? 1;
     const limit = query.limit ?? 20;
     const where = this.buildWhere(empresaId, query);
@@ -157,11 +163,14 @@ export class LeadsService {
     if (dto.email !== undefined) {
       data.email = this.normalizeOptionalText(dto.email)?.toLowerCase() ?? null;
     }
-    if (dto.telefone !== undefined) data.telefone = this.normalizeOptionalText(dto.telefone);
-    if (dto.whatsapp !== undefined) data.whatsapp = this.normalizeOptionalText(dto.whatsapp);
+    if (dto.telefone !== undefined)
+      data.telefone = this.normalizeOptionalText(dto.telefone);
+    if (dto.whatsapp !== undefined)
+      data.whatsapp = this.normalizeOptionalText(dto.whatsapp);
     if (dto.origem !== undefined) data.origem = dto.origem;
     if (dto.status !== undefined) data.status = dto.status;
-    if (dto.mensagem !== undefined) data.mensagem = this.normalizeOptionalText(dto.mensagem);
+    if (dto.mensagem !== undefined)
+      data.mensagem = this.normalizeOptionalText(dto.mensagem);
     if (dto.observacoes !== undefined) {
       data.observacoes = this.normalizeOptionalText(dto.observacoes);
     }
@@ -183,7 +192,10 @@ export class LeadsService {
     dto: MoveLeadDto,
   ): Promise<LeadWithRelations> {
     const lead = await this.findOne(empresaId, leadId);
-    const stage = await this.pipelineService.findStageOrFail(empresaId, dto.stageId);
+    const stage = await this.pipelineService.findStageOrFail(
+      empresaId,
+      dto.stageId,
+    );
 
     if (lead.stageId === stage.id) {
       throw new BadRequestException('O lead já está nesta etapa');
@@ -241,7 +253,10 @@ export class LeadsService {
     }));
   }
 
-  async remove(empresaId: number, id: number): Promise<{ mensagem: string; id: number }> {
+  async remove(
+    empresaId: number,
+    id: number,
+  ): Promise<{ mensagem: string; id: number }> {
     await this.findOne(empresaId, id);
 
     await this.prisma.lead.update({
@@ -255,7 +270,10 @@ export class LeadsService {
     };
   }
 
-  private buildWhere(empresaId: number, query: QueryLeadDto): Prisma.LeadWhereInput {
+  private buildWhere(
+    empresaId: number,
+    query: QueryLeadDto,
+  ): Prisma.LeadWhereInput {
     const where: Prisma.LeadWhereInput = {
       empresaId,
       ativo: true,

@@ -35,8 +35,8 @@ export class UsersService {
       return usuario;
     } catch (error) {
       if (
-        error instanceof Prisma.PrismaClientKnownRequestError
-        && error.code === 'P2002'
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === 'P2002'
       ) {
         throw new ConflictException('Já existe um usuário com este e-mail');
       }

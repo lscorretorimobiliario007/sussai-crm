@@ -3,10 +3,15 @@ import { ValidationPipe } from '@nestjs/common';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { existsSync, mkdirSync } from 'fs';
 import { join } from 'path';
+import helmet from 'helmet';
 import { AppModule } from './app.module';
 import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
+import { resolveJwtSecret } from './common/utils/jwt-secret';
 
 async function bootstrap() {
+  // Fail fast in production if JWT_SECRET is missing
+  resolveJwtSecret();
+
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
   const uploadsRoot = join(process.cwd(), 'uploads');
@@ -18,6 +23,13 @@ async function bootstrap() {
     prefix: '/uploads/',
   });
 
+  app.use(
+    helmet({
+      crossOriginResourcePolicy: { policy: 'cross-origin' },
+      contentSecurityPolicy: false,
+    }),
+  );
+
   app.setGlobalPrefix('api');
   app.useGlobalPipes(
     new ValidationPipe({
@@ -28,8 +40,14 @@ async function bootstrap() {
     }),
   );
   app.useGlobalFilters(new AllExceptionsFilter());
+
+  const allowedOrigins = (process.env.CORS_ORIGIN || '')
+    .split(',')
+    .map((item) => item.trim())
+    .filter(Boolean);
+
   app.enableCors({
-    origin: process.env.CORS_ORIGIN?.split(',').map((item) => item.trim()) || true,
+    origin: allowedOrigins.length > 0 ? allowedOrigins : true,
     credentials: true,
   });
 
