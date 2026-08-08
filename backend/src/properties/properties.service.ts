@@ -47,9 +47,12 @@ export class PropertiesService {
   async create(empresaId: number, dto: CreatePropertyDto): Promise<Property> {
     this.assertCommercialRules(dto);
     this.assertCep(dto.cep);
-    if (dto.proprietarioId != null) {
-      await this.ensureOwnerAccess(empresaId, dto.proprietarioId);
+    if (!dto.proprietarioId || dto.proprietarioId < 1) {
+      throw new BadRequestException(
+        'Proprietário é obrigatório para cadastrar o imóvel',
+      );
     }
+    await this.ensureOwnerAccess(empresaId, dto.proprietarioId);
 
     const codigo = await this.generateCodigo(empresaId);
 
@@ -66,7 +69,7 @@ export class PropertiesService {
         data: {
           empresaId,
 
-          proprietarioId: dto.proprietarioId ?? null,
+          proprietarioId: dto.proprietarioId,
 
           codigo,
 

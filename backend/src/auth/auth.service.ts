@@ -302,6 +302,12 @@ export class AuthService {
     };
   }
 
+  async refresh(userId: number) {
+    return this.issueAuthResponse(userId, {
+      mensagem: 'Token renovado com sucesso',
+    });
+  }
+
   async listUsuarios(user: AuthUser) {
     if (
       !([UserProfile.ADMIN, UserProfile.GERENTE] as UserProfile[]).includes(

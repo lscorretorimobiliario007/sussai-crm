@@ -526,8 +526,9 @@ export async function criarLeadPublico(req, res) {
     if (!nome || nome.length < 2) return res.status(400).json({ erro: "Informe o nome" });
     if (!telefone || telefone.length < 8) return res.status(400).json({ erro: "Informe um telefone válido" });
     if (mensagem && mensagem.length > 4000) return res.status(400).json({ erro: "Mensagem muito longa" });
-    if (agendarVisita && (!dataVisita || Number.isNaN(dataVisita.getTime()))) {
-      return res.status(400).json({ erro: "Informe a data da visita" });
+    // Data da visita é opcional: sem data, cria lead VISITA aguardando contato
+    if (agendarVisita && dataVisita && Number.isNaN(dataVisita.getTime())) {
+      return res.status(400).json({ erro: "Data da visita inválida" });
     }
 
     let imovel = null;

@@ -1,0 +1,74 @@
+name: SUSSAI RC CI
+
+on:
+  push:
+    branches: [main, master, "release/**"]
+  pull_request:
+    branches: [main, master]
+
+jobs:
+  backend-gate:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: sussai
+          POSTGRES_PASSWORD: sussai
+          POSTGRES_DB: imobiliaria
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U sussai -d imobiliaria"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      DATABASE_URL: postgresql://sussai:sussai@localhost:5432/imobiliaria?schema=public
+      JWT_SECRET: ci-rc-secret-do-not-use-in-prod
+      SITE_EMPRESA_ID: "1"
+      NODE_ENV: test
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+      - run: npm ci
+      - run: npx prisma migrate deploy
+      - run: npx prisma db seed
+      - run: npm run build
+      - run: npm run lint
+      - run: npm test
+      - name: Start API
+        run: |
+          npm run start:prod &
+          for i in $(seq 1 30); do
+            if curl -sf http://127.0.0.1:3000/api/public/empresa >/dev/null; then exit 0; fi
+            sleep 2
+          done
+          echo "API failed to start"; exit 1
+      - name: Smoke login (fail = cancel deploy)
+        run: node scripts/smoke-login.mjs
+      - name: E2E stabilization
+        run: node scripts/e2e-stabilization.mjs
+
+  frontend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run build

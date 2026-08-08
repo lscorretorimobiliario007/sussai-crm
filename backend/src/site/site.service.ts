@@ -354,6 +354,14 @@ export class SiteService {
         ? descricaoImovel
         : null);
 
+    const isVisitaSemData =
+      tipoFormulario === TipoFormularioSite.VISITA &&
+      !(dto.agendarVisita && dto.dataVisita);
+
+    const observacoesFinais = isVisitaSemData
+      ? `${observacoes}\nStatus inicial: Aguardando contato (sem data preferencial — corretor agenda no CRM).`.trim()
+      : observacoes;
+
     const lead = await this.prisma.lead.create({
       data: {
         empresaId,
@@ -367,7 +375,7 @@ export class SiteService {
         origem,
         status: LeadStatus.NOVO,
         mensagem: mensagemBase,
-        observacoes,
+        observacoes: observacoesFinais,
         ativo: true,
       },
     });

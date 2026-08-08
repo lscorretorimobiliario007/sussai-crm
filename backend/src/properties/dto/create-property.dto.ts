@@ -15,11 +15,10 @@ import {
 import { FinalidadeImovel, TipoImovel } from '@prisma/client';
 
 export class CreatePropertyDto {
-  @IsOptional()
   @Type(() => Number)
-  @IsInt()
-  @Min(1)
-  proprietarioId?: number | null;
+  @IsInt({ message: 'Proprietário é obrigatório' })
+  @Min(1, { message: 'Proprietário é obrigatório' })
+  proprietarioId!: number;
 
   @IsString()
   @IsNotEmpty()

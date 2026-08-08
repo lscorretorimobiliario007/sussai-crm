@@ -4,9 +4,10 @@
   "version": "1.0.0-rc1",
   "description": "SUSSAI CRM + Portal Top Conceição",
   "scripts": {
-    "check": "npm run check --prefix backend && npm run lint --prefix frontend && npm run lint --prefix top-conceicao-site",
-    "build": "npm run build --prefix backend && npm run build --prefix frontend && npm run build --prefix top-conceicao-site",
-    "validate": "npm run check && npm run build"
+    "check": "npm run check --prefix backend && npm run lint --prefix frontend",
+    "build": "npm run build --prefix backend && npm run build --prefix frontend",
+    "validate": "npm run check && npm run build",
+    "rc:gate": "npm run rc:gate --prefix backend"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",

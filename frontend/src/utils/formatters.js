@@ -28,9 +28,10 @@ export const STATUS_IMOVEL = {
 };
 
 export const STATUS_LEAD = {
-  NOVO: { label: "Novo", color: "#6366f1" },
+  NOVO: { label: "Aguardando contato", color: "#6366f1" },
+  PRIMEIRO_CONTATO: { label: "Primeiro Contato", color: "#8b5cf6" },
   CONTATO: { label: "Contato", color: "#8b5cf6" },
-  VISITA_AGENDADA: { label: "Visita", color: "#a855f7" },
+  VISITA_AGENDADA: { label: "Visita Agendada", color: "#a855f7" },
   PROPOSTA: { label: "Proposta", color: "#f59e0b" },
   NEGOCIACAO: { label: "Negociação", color: "#f97316" },
   FECHADO: { label: "Fechado", color: "#22c55e" },

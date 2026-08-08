@@ -1,7 +1,12 @@
 import { LeadStatus } from '@prisma/client';
 
 export const DEFAULT_PIPELINE_STAGES = [
-  { nome: 'Novo', ordem: 1, cor: '#6366f1', status: LeadStatus.NOVO },
+  {
+    nome: 'Aguardando contato',
+    ordem: 1,
+    cor: '#6366f1',
+    status: LeadStatus.NOVO,
+  },
   {
     nome: 'Primeiro Contato',
     ordem: 2,

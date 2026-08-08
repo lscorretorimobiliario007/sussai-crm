@@ -31,6 +31,16 @@ export class PipelineService {
           ativo: true,
         })),
       });
+    } else {
+      // Renomeia etapa legada "Novo" para o status comercial pedido
+      await this.prisma.pipelineStage.updateMany({
+        where: {
+          empresaId,
+          ordem: 1,
+          nome: { in: ['Novo', 'NOVO', 'novo'] },
+        },
+        data: { nome: 'Aguardando contato' },
+      });
     }
 
     return this.listStages(empresaId, false);

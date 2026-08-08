@@ -47,8 +47,50 @@ async function main() {
     },
   });
 
+  const staffPassword = await bcrypt.hash(ADMIN_PASSWORD, 10);
+
+  await prisma.usuario.upsert({
+    where: { email: "gerente@topconceicao.com.br" },
+    update: {
+      nome: "Gerente Top",
+      senha: staffPassword,
+      perfil: "GERENTE",
+      empresaId: empresa.id,
+      ativo: true,
+    },
+    create: {
+      nome: "Gerente Top",
+      email: "gerente@topconceicao.com.br",
+      senha: staffPassword,
+      perfil: "GERENTE",
+      empresaId: empresa.id,
+      ativo: true,
+    },
+  });
+
+  await prisma.usuario.upsert({
+    where: { email: "corretor@topconceicao.com.br" },
+    update: {
+      nome: "Corretor Top",
+      senha: staffPassword,
+      perfil: "CORRETOR",
+      empresaId: empresa.id,
+      ativo: true,
+    },
+    create: {
+      nome: "Corretor Top",
+      email: "corretor@topconceicao.com.br",
+      senha: staffPassword,
+      perfil: "CORRETOR",
+      empresaId: empresa.id,
+      ativo: true,
+    },
+  });
+
   console.log("Seed executado com sucesso.");
   console.log(`ADMIN: ${ADMIN_EMAIL} / ${ADMIN_PASSWORD}`);
+  console.log(`GERENTE: gerente@topconceicao.com.br / ${ADMIN_PASSWORD}`);
+  console.log(`CORRETOR: corretor@topconceicao.com.br / ${ADMIN_PASSWORD}`);
   console.log(`SITE_EMPRESA_ID should be: ${empresa.id}`);
 }
 

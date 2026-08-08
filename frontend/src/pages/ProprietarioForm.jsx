@@ -95,14 +95,22 @@ export default function ProprietarioForm() {
     setSaving(true);
     try {
       const payload = {
-        ...form,
+        nome: form.nome.trim(),
         cpf: form.cpf.replace(/\D/g, "") || null,
         cnpj: form.cnpj.replace(/\D/g, "") || null,
+        rg: form.rg.trim() || null,
+        email: form.email.trim() || null,
         telefone: form.telefone.replace(/\D/g, "") || null,
         celular: form.celular.replace(/\D/g, "") || null,
         whatsapp: form.whatsapp.replace(/\D/g, "") || null,
         cep: form.cep.replace(/\D/g, "") || null,
-        estado: form.estado.toUpperCase(),
+        rua: form.rua.trim() || null,
+        numero: form.numero.trim() || null,
+        complemento: form.complemento.trim() || null,
+        bairro: form.bairro.trim() || null,
+        cidade: form.cidade.trim() || null,
+        estado: form.estado.trim().toUpperCase() || null,
+        observacoes: form.observacoes.trim() || null,
       };
       const response = editing
         ? await api.put(`/proprietarios/${id}`, payload)

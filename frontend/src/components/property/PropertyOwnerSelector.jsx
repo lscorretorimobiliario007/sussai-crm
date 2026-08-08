@@ -225,9 +225,9 @@ export default function PropertyOwnerSelector({
           variant="outlined"
           startIcon={<Add />}
           onClick={() => setModalOpen(true)}
-          sx={{ minWidth: 190, minHeight: 56 }}
+          sx={{ minWidth: { xs: "100%", md: 220 }, minHeight: 56, whiteSpace: "nowrap" }}
         >
-          Novo proprietário
+          Cadastrar Proprietário
         </Button>
       </Stack>
 

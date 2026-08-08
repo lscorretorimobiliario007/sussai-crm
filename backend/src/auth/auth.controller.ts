@@ -65,6 +65,14 @@ export class AuthController {
     return this.authService.me(user.id);
   }
 
+  /** Sliding session: reemite JWT a partir de token ainda válido (sem alterar banco). */
+  @Post('refresh')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(JwtAuthGuard)
+  refresh(@CurrentUser() user: AuthUser) {
+    return this.authService.refresh(user.id);
+  }
+
   @Get('perfil')
   @UseGuards(JwtAuthGuard)
   perfil(@CurrentUser() user: AuthUser) {

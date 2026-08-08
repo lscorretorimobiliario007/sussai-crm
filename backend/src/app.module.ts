@@ -31,6 +31,7 @@ import { AgendaModule } from './agenda/agenda.module';
 import { ContratosModule } from './contratos/contratos.module';
 import { TarefasModule } from './tarefas/tarefas.module';
 import { FinanceiroModule } from './financeiro/financeiro.module';
+import { AiModule } from './ai/ai.module';
 
 @Module({
   imports: [
@@ -70,6 +71,7 @@ import { FinanceiroModule } from './financeiro/financeiro.module';
     IntegracoesModule,
     BackupModule,
     DocumentosModule,
+    AiModule,
   ],
   controllers: [AppController],
   providers: [AppService],
