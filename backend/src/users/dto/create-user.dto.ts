@@ -20,10 +20,12 @@ export class CreateUserDto {
   @MinLength(6)
   senha!: string;
 
+  /** Ignored for privilege escalation; forced from JWT empresaId. */
+  @IsOptional()
   @Type(() => Number)
   @IsInt()
   @Min(1)
-  empresaId!: number;
+  empresaId?: number;
 
   @IsOptional()
   @IsEnum(UserProfile)

@@ -8,6 +8,27 @@ function clearStoredSession() {
   localStorage.removeItem("usuario");
 }
 
+function mapUsuario(data) {
+  if (!data) return null;
+
+  return {
+    id: data.id,
+    nome: data.nome,
+    email: data.email,
+    perfil: data.perfil,
+    tipo: data.tipo || data.perfil,
+    empresaId: data.empresaId,
+    empresaNome:
+      data.empresaNome
+      ?? data.empresa?.nomeFantasia
+      ?? data.empresa?.nome
+      ?? null,
+    plano: data.plano ?? data.empresa?.plano ?? null,
+    demo: Boolean(data.demo) || data.email === "demo@sussai.com.br",
+    empresa: data.empresa,
+  };
+}
+
 export function AuthProvider({ children }) {
   const [usuario, setUsuario] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -23,15 +44,7 @@ export function AuthProvider({ children }) {
 
       try {
         const { data } = await api.get("/auth/me");
-
-        const usuarioLogado = {
-          id: data.id,
-          nome: data.nome,
-          email: data.email,
-          perfil: data.perfil,
-          empresaId: data.empresaId,
-          empresa: data.empresa,
-        };
+        const usuarioLogado = mapUsuario(data);
 
         setUsuario(usuarioLogado);
         localStorage.setItem("usuario", JSON.stringify(usuarioLogado));
@@ -54,9 +67,10 @@ export function AuthProvider({ children }) {
       throw new Error("Token de autenticação ausente na resposta");
     }
 
+    const usuarioLogado = mapUsuario(data.usuario || data);
     localStorage.setItem("token", token);
-    localStorage.setItem("usuario", JSON.stringify(data.usuario));
-    setUsuario(data.usuario);
+    localStorage.setItem("usuario", JSON.stringify(usuarioLogado));
+    setUsuario(usuarioLogado);
     return data;
   };
 
@@ -69,11 +83,25 @@ export function AuthProvider({ children }) {
     return applySession(data);
   };
 
+  const registrar = async (payload) => {
+    const { data } = await api.post("/auth/registrar", payload);
+    const token = data.access_token || data.token;
+
+    if (token) {
+      return applySession(data);
+    }
+
+    window.location.assign("/login");
+    return data;
+  };
+
   const entrarDemo = async ({ reset = false } = {}) => {
     const path = reset ? "/auth/demo/reset" : "/auth/demo";
     const { data } = await api.post(path, reset ? {} : { reset: false });
     return applySession(data);
   };
+
+  const resetarDemo = () => entrarDemo({ reset: true });
 
   const logout = () => {
     clearStoredSession();
@@ -87,7 +115,9 @@ export function AuthProvider({ children }) {
         loading,
         login,
         logout,
+        registrar,
         entrarDemo,
+        resetarDemo,
       }}
     >
       {children}

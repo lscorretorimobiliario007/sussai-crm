@@ -7,9 +7,10 @@ import { PropertyImage } from '@prisma/client';
 import { existsSync, unlinkSync } from 'fs';
 import { join } from 'path';
 import { PrismaService } from '../../prisma/prisma.service';
+import { resolveUploadPath } from '../../common/utils/uploads-root';
 import {
+  getPropertyUploadRoot,
   MAX_PROPERTY_IMAGES,
-  PROPERTY_UPLOAD_ROOT,
 } from './property-images.storage';
 
 export type PropertyImageResponse = PropertyImage & {
@@ -254,8 +255,8 @@ export class PropertyImagesService {
     propertyId: number,
   ): void {
     const candidates = [
-      join(process.cwd(), 'uploads', filePath),
-      join(PROPERTY_UPLOAD_ROOT, String(propertyId), fileName),
+      resolveUploadPath(filePath),
+      join(getPropertyUploadRoot(), String(propertyId), fileName),
     ];
 
     for (const candidate of candidates) {

@@ -131,23 +131,26 @@ cd backend
 npm ci
 npx prisma migrate deploy
 npx prisma generate
-npm run check
-NODE_ENV=production npm start
+npm run build
+# NUNCA use: prisma db push | node src/server.js (Express legado)
+NODE_ENV=production npm run start:prod
 ```
 
-Não há transpile: o código JS roda direto. `npm run build` no backend = `validate` (prisma + check).
+O runtime de produção é **NestJS** (`dist/src/main.js`). O arquivo `src/server.js` (Express) é legado e **não** deve ser iniciado.
 
 ### 2.3 Process manager (exemplo PM2)
 
 ```bash
 npm i -g pm2
 cd backend
-pm2 start src/server.js --name sussai-api --env production
+npm run build
+pm2 start ecosystem.config.cjs --env production
+# ou: pm2 start dist/src/main.js --name sussai-api
 pm2 save
 pm2 startup
 ```
 
-Ou systemd unit apontando para `node src/server.js` com `WorkingDirectory` = `backend/` e `EnvironmentFile` = `.env`.
+Ou systemd unit apontando para `node dist/src/main.js` com `WorkingDirectory` = `backend/` e `EnvironmentFile` = `.env`.
 
 ### 2.4 Reverse proxy (Nginx — exemplo)
 
@@ -160,6 +163,16 @@ server {
   # ssl_certificate_key …;
 
   client_max_body_size 25m;
+
+  # Uploads servidos pelo Nest em /uploads (prefixo global da API é /api)
+  location /uploads/ {
+    proxy_pass http://127.0.0.1:3000/uploads/;
+    proxy_http_version 1.1;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+  }
 
   location / {
     proxy_pass http://127.0.0.1:3000;
@@ -175,12 +188,14 @@ server {
 ### 2.5 Validação da API
 
 ```bash
-curl -s https://api.topconceicao.com.br/
-curl -s -o /dev/null -w "%{http_code}" https://api.topconceicao.com.br/api/docs
-curl -s "https://api.topconceicao.com.br/public/imoveis?limit=1"
+curl -s https://api.topconceicao.com.br/api/health
+curl -s "https://api.topconceicao.com.br/api/public/imoveis?limit=1"
+curl -s -X POST https://api.topconceicao.com.br/api/auth/login \
+  -H 'Content-Type: application/json' \
+  -d '{"email":"admin@topconceicao.com.br","senha":"Admin@123"}'
 ```
 
-Esperado: JSON `ONLINE`, docs 200 (ou 401 se restringir), imóveis públicos sem 503.
+Esperado: health `healthy`, imóveis públicos 200, login 200 com `access_token`.
 
 ---
 
@@ -249,8 +264,9 @@ Plataformas alternativas: Cloudflare Pages, S3+CloudFront, Netlify — desde que
 
 ```env
 NEXT_PUBLIC_SITE_URL=https://www.topconceicao.com.br
-NEXT_PUBLIC_SUSSAI_API_URL=https://api.topconceicao.com.br
-SUSSAI_API_URL=https://api.topconceicao.com.br
+# Must include /api (Nest global prefix) — without it, public/leads and listings 404.
+NEXT_PUBLIC_SUSSAI_API_URL=https://api.topconceicao.com.br/api
+SUSSAI_API_URL=https://api.topconceicao.com.br/api
 NEXT_PUBLIC_WHATSAPP=5511XXXXXXXXX
 NEXT_PUBLIC_GOOGLE_MAPS_EMBED_KEY=
 ```
@@ -258,8 +274,8 @@ NEXT_PUBLIC_GOOGLE_MAPS_EMBED_KEY=
 | Variável | Uso |
 |----------|-----|
 | `NEXT_PUBLIC_SITE_URL` | Canonical, OG, sitemap, robots |
-| `NEXT_PUBLIC_SUSSAI_API_URL` | Fetch no browser (leads) |
-| `SUSSAI_API_URL` | Fetch SSR no servidor Next |
+| `NEXT_PUBLIC_SUSSAI_API_URL` | Fetch no browser (leads) — base com `/api` |
+| `SUSSAI_API_URL` | Fetch SSR no servidor Next — base com `/api` |
 | `NEXT_PUBLIC_WHATSAPP` | Botões wa.me |
 
 CORS do backend **deve** incluir `NEXT_PUBLIC_SITE_URL`.

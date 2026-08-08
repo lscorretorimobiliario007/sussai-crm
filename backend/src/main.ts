@@ -1,12 +1,11 @@
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { NestExpressApplication } from '@nestjs/platform-express';
-import { existsSync, mkdirSync } from 'fs';
-import { join } from 'path';
 import helmet from 'helmet';
 import { AppModule } from './app.module';
 import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
 import { resolveJwtSecret } from './common/utils/jwt-secret';
+import { getUploadsRoot } from './common/utils/uploads-root';
 
 async function bootstrap() {
   // Fail fast in production if JWT_SECRET is missing
@@ -14,12 +13,7 @@ async function bootstrap() {
 
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
-  const uploadsRoot = join(process.cwd(), 'uploads');
-  if (!existsSync(uploadsRoot)) {
-    mkdirSync(uploadsRoot, { recursive: true });
-  }
-
-  app.useStaticAssets(uploadsRoot, {
+  app.useStaticAssets(getUploadsRoot(), {
     prefix: '/uploads/',
   });
 
@@ -46,8 +40,14 @@ async function bootstrap() {
     .map((item) => item.trim())
     .filter(Boolean);
 
+  if (process.env.NODE_ENV === 'production' && allowedOrigins.length === 0) {
+    throw new Error(
+      'CORS_ORIGIN must be set in production (comma-separated origins). Refusing to start with open CORS.',
+    );
+  }
+
   app.enableCors({
-    origin: allowedOrigins.length > 0 ? allowedOrigins : true,
+    origin: allowedOrigins.length > 0 ? allowedOrigins : false,
     credentials: true,
   });
 

@@ -6,8 +6,13 @@ on:
   pull_request:
     branches: [main, master]
 
+concurrency:
+  group: rc-ci-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   backend-gate:
+    name: backend-gate
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -31,6 +36,7 @@ jobs:
       JWT_SECRET: ci-rc-secret-do-not-use-in-prod
       SITE_EMPRESA_ID: "1"
       NODE_ENV: test
+      API_URL: http://127.0.0.1:3000/api
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -39,25 +45,44 @@ jobs:
           cache: npm
           cache-dependency-path: backend/package-lock.json
       - run: npm ci
-      - run: npx prisma migrate deploy
-      - run: npx prisma db seed
-      - run: npm run build
+      - name: Prisma migrate deploy
+        run: npx prisma migrate deploy
+      - name: Prisma migrate status (must be up to date)
+        run: npx prisma migrate status
+      - name: Prisma generate
+        run: npx prisma generate
+      - name: Seed
+        run: npx prisma db seed
+      - name: DB drift check (fail if schema != DB)
+        run: node scripts/check-db-drift.mjs
+      - name: Empresa + DB audits
+        run: node scripts/audit-database.mjs
       - run: npm run lint
+      - run: npm run build
       - run: npm test
       - name: Start API
         run: |
           npm run start:prod &
-          for i in $(seq 1 30); do
-            if curl -sf http://127.0.0.1:3000/api/public/empresa >/dev/null; then exit 0; fi
+          for i in $(seq 1 40); do
+            if curl -sf http://127.0.0.1:3000/api/health >/dev/null; then
+              echo "API healthy"
+              exit 0
+            fi
             sleep 2
           done
-          echo "API failed to start"; exit 1
-      - name: Smoke login (fail = cancel deploy)
+          echo "API failed to become healthy"
+          exit 1
+      - name: Smoke health
+        run: node scripts/smoke-health.mjs
+      - name: Smoke login (cancel if fail)
         run: node scripts/smoke-login.mjs
+      - name: Smoke API
+        run: node scripts/smoke-api.mjs
       - name: E2E stabilization
         run: node scripts/e2e-stabilization.mjs
 
   frontend:
+    name: frontend
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -72,3 +97,11 @@ jobs:
       - run: npm ci
       - run: npm run lint
       - run: npm run build
+
+  # Aggregate gate — require both jobs for branch protection
+  deploy-ready:
+    name: deploy-ready
+    needs: [backend-gate, frontend]
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "All gates green — safe to merge to main"

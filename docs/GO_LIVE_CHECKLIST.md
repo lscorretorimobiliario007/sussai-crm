@@ -174,8 +174,8 @@ Definir e apontar DNS (exemplo sugerido — ajuste ao real):
 | Variável | Produção |
 |----------|----------|
 | `NEXT_PUBLIC_SITE_URL` | `https://www.…` |
-| `NEXT_PUBLIC_SUSSAI_API_URL` | `https://api.…` |
-| `SUSSAI_API_URL` | `https://api.…` (server-side) |
+| `NEXT_PUBLIC_SUSSAI_API_URL` | `https://api.…/api` (obrigatório incluir `/api`) |
+| `SUSSAI_API_URL` | `https://api.…/api` (server-side) |
 | `NEXT_PUBLIC_WHATSAPP` | Número oficial |
 | `NEXT_PUBLIC_GOOGLE_MAPS_EMBED_KEY` | Se usar chave própria |
 

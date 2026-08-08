@@ -8,7 +8,7 @@ import { CreateUserDto } from './dto/create-user.dto';
 export class UsersService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async create(data: CreateUserDto) {
+  async create(data: CreateUserDto & { empresaId: number }) {
     const email = data.email.trim().toLowerCase();
     const senhaCriptografada = await bcrypt.hash(data.senha, 10);
 

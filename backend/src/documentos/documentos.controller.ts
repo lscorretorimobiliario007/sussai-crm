@@ -10,16 +10,16 @@ import {
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { existsSync, mkdirSync } from 'fs';
-import { extname, join } from 'path';
+import { extname } from 'path';
 import { randomUUID } from 'crypto';
 import { IsOptional, IsString } from 'class-validator';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import type { AuthUser } from '../auth/types/auth-user.type';
 import { documentFileFilter } from '../common/upload/file-filters';
+import { resolveUploadPath } from '../common/utils/uploads-root';
 import { DocumentosService } from './documentos.service';
 
-const DOCS_UPLOAD_ROOT = join(process.cwd(), 'uploads', 'documentos');
 const MAX_DOC_SIZE = 25 * 1024 * 1024;
 
 class UploadDocumentoDto {
@@ -52,7 +52,10 @@ export class DocumentosController {
       storage: diskStorage({
         destination: (req, _file, cb) => {
           const user = (req as typeof req & { user?: AuthUser }).user;
-          const dir = join(DOCS_UPLOAD_ROOT, String(user?.empresaId || '0'));
+          const dir = resolveUploadPath(
+            'documentos',
+            String(user?.empresaId || '0'),
+          );
           if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
           cb(null, dir);
         },

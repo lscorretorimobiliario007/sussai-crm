@@ -141,6 +141,9 @@ export default function Configuracoes() {
         latitude: empresa.latitude === "" ? null : Number(empresa.latitude),
         longitude: empresa.longitude === "" ? null : Number(empresa.longitude),
       };
+      for (const [key, value] of Object.entries(payload)) {
+        if (value === "") payload[key] = null;
+      }
       delete payload.logoUrl;
       delete payload.faviconUrl;
       delete payload.plano;
@@ -168,9 +171,7 @@ export default function Configuracoes() {
     const body = new FormData();
     body.append(kind, file);
     try {
-      const res = await api.post(`/empresa/${kind}`, body, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
+      const res = await api.post(`/empresa/${kind}`, body);
       setEmpresa((current) => ({ ...current, ...res.data }));
       toast.success(kind === "logo" ? "Logo atualizada." : "Favicon atualizado.");
     } catch (error) {

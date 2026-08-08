@@ -99,6 +99,12 @@ function parseList(value) {
     .filter(Boolean);
 }
 
+function emptyToNull(value) {
+  if (value == null) return null;
+  const trimmed = String(value).trim();
+  return trimmed === "" ? null : trimmed;
+}
+
 function normalizePrimary(items) {
   if (!items.length) return [];
   const principalIndex = items.findIndex((item) => item.principal);
@@ -282,15 +288,22 @@ export default function ClienteForm() {
 
     return {
       ...form,
-      endereco: enderecoResumido,
-      cidade: principalAddress?.cidade || form.cidade,
-      estado: (principalAddress?.estado || form.estado).toUpperCase(),
+      razaoSocial: emptyToNull(form.razaoSocial),
+      nomeFantasia: emptyToNull(form.nomeFantasia),
+      email: emptyToNull(form.email),
+      telefone: emptyToNull(form.telefone),
+      whatsapp: emptyToNull(form.whatsapp),
+      endereco: emptyToNull(enderecoResumido),
+      cidade: emptyToNull(principalAddress?.cidade || form.cidade),
+      estado: emptyToNull((principalAddress?.estado || form.estado).toUpperCase()),
+      notas: emptyToNull(form.notas),
+      origem: emptyToNull(form.origem),
       faixaPrecoMin: form.faixaPrecoMin === "" ? null : Number(form.faixaPrecoMin),
       faixaPrecoMax: form.faixaPrecoMax === "" ? null : Number(form.faixaPrecoMax),
       corretorId: form.corretorId ? Number(form.corretorId) : null,
       cidadesInteresse: parseList(form.cidadesInteresse),
       tags: parseList(form.tags),
-      cpfCnpj: form.cpfCnpj.replace(/\D/g, ""),
+      cpfCnpj: form.cpfCnpj.replace(/\D/g, "") || null,
     };
   };
 

@@ -7,7 +7,9 @@
     "check": "npm run check --prefix backend && npm run lint --prefix frontend",
     "build": "npm run build --prefix backend && npm run build --prefix frontend",
     "validate": "npm run check && npm run build",
-    "rc:gate": "npm run rc:gate --prefix backend"
+    "rc:gate": "npm run rc:gate --prefix backend",
+    "deploy:production": "node scripts/deploy-production.mjs",
+    "deploy": "node scripts/deploy-production.mjs"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",

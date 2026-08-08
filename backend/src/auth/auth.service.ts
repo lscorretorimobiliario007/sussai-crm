@@ -120,7 +120,12 @@ export class AuthService {
   }
 
   async registrar(dto: RegistrarDto) {
-    if (process.env.ALLOW_PUBLIC_SIGNUP === 'false') {
+    const allowPublicSignup = process.env.ALLOW_PUBLIC_SIGNUP === 'true';
+    const denySignup =
+      process.env.NODE_ENV === 'production'
+        ? !allowPublicSignup
+        : process.env.ALLOW_PUBLIC_SIGNUP === 'false';
+    if (denySignup) {
       throw new ForbiddenException(
         'Cadastro público desabilitado. Contate o administrador.',
       );
@@ -252,6 +257,9 @@ export class AuthService {
     AuthUser & {
       ativo: boolean;
       tipo: UserProfile;
+      empresaNome: string;
+      plano: string;
+      demo: boolean;
       empresa: {
         id: number;
         nome: string;
@@ -296,6 +304,9 @@ export class AuthService {
       perfil: usuario.perfil,
       tipo: usuario.perfil,
       empresaId: usuario.empresaId,
+      empresaNome: usuario.empresa.nomeFantasia || usuario.empresa.nome,
+      plano: usuario.empresa.plano,
+      demo: usuario.email === DEMO_EMAIL,
       ativo: usuario.ativo,
       empresa: usuario.empresa,
       createdAt: usuario.createdAt,

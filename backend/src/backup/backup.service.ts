@@ -1,15 +1,10 @@
-import { Injectable } from '@nestjs/common';
-import { BackupStatus } from '@prisma/client';
+import { Injectable, NotImplementedException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { AuditService } from '../audit/audit.service';
 import type { AuthUser } from '../auth/types/auth-user.type';
 
 @Injectable()
 export class BackupService {
-  constructor(
-    private readonly prisma: PrismaService,
-    private readonly auditService: AuditService,
-  ) {}
+  constructor(private readonly prisma: PrismaService) {}
 
   findAll(empresaId: number) {
     return this.prisma.backupRecord.findMany({
@@ -19,32 +14,10 @@ export class BackupService {
     });
   }
 
-  async createStub(user: AuthUser) {
-    const record = await this.prisma.backupRecord.create({
-      data: {
-        empresaId: user.empresaId,
-        status: BackupStatus.PENDENTE,
-        filePath: null,
-      },
-    });
-
-    // Stub: mark as completed shortly with a placeholder path
-    const completed = await this.prisma.backupRecord.update({
-      where: { id: record.id },
-      data: {
-        status: BackupStatus.CONCLUIDO,
-        filePath: `/backups/stub-${user.empresaId}-${record.id}.json`,
-        completedAt: new Date(),
-      },
-    });
-
-    await this.auditService.logAudit(
-      user,
-      'CREATE',
-      'BackupRecord',
-      completed.id,
+  createStub(_user: AuthUser): never {
+    void _user;
+    throw new NotImplementedException(
+      'Backup não configurado neste ambiente. Configure um provedor de backup antes de usar este endpoint.',
     );
-
-    return completed;
   }
 }

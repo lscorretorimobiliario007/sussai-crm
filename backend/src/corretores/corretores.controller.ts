@@ -14,7 +14,7 @@ import {
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { existsSync, mkdirSync } from 'fs';
-import { extname, join } from 'path';
+import { extname } from 'path';
 import { randomUUID } from 'crypto';
 import { UserProfile } from '@prisma/client';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -22,13 +22,12 @@ import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import type { AuthUser } from '../auth/types/auth-user.type';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { RolesGuard } from '../auth/guards/roles.guard';
+import { resolveUploadPath } from '../common/utils/uploads-root';
 import { CorretoresService } from './corretores.service';
 import { QueryCorretorDto } from './dto/query-corretor.dto';
 import { CreateCorretorDto } from './dto/create-corretor.dto';
 import { UpdateCorretorDto } from './dto/update-corretor.dto';
 import { CreateEquipeDto } from './dto/create-equipe.dto';
-
-const CORRETOR_UPLOAD_ROOT = join(process.cwd(), 'uploads', 'corretores');
 
 @Controller('corretores')
 @UseGuards(JwtAuthGuard)
@@ -93,8 +92,8 @@ export class CorretoresController {
         destination: (req, _file, cb) => {
           const user = (req as typeof req & { user?: AuthUser }).user;
           const id = req.params.id;
-          const dir = join(
-            CORRETOR_UPLOAD_ROOT,
+          const dir = resolveUploadPath(
+            'corretores',
             String(user?.empresaId || '0'),
             String(id),
           );

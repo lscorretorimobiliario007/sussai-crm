@@ -118,6 +118,6 @@ export class SitePropertiesQueryDto {
   @Type(() => Number)
   @IsInt()
   @Min(1)
-  @Max(48)
+  @Max(100)
   limit?: number = 12;
 }

@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Delete,
@@ -16,10 +17,18 @@ import {
 } from '@nestjs/common';
 import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 import type { Response } from 'express';
-import { memoryStorage } from 'multer';
+import { diskStorage } from 'multer';
+import { existsSync, mkdirSync } from 'fs';
+import { extname } from 'path';
+import { randomUUID } from 'crypto';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import type { AuthUser } from '../auth/types/auth-user.type';
+import {
+  documentFileFilter,
+  imageFileFilter,
+} from '../common/upload/file-filters';
+import { resolveUploadPath } from '../common/utils/uploads-root';
 import { ClientesService } from './clientes.service';
 import { CreateClienteDto } from './dto/create-cliente.dto';
 import { UpdateClienteDto } from './dto/update-cliente.dto';
@@ -30,6 +39,17 @@ import { InteracaoClienteDto } from './dto/interacao-cliente.dto';
 import { FavoritoClienteDto } from './dto/favorito-cliente.dto';
 import { VisitaClienteDto } from './dto/visita-cliente.dto';
 import { PropostaClienteDto } from './dto/proposta-cliente.dto';
+
+const MAX_AVATAR_SIZE = 5 * 1024 * 1024;
+const MAX_DOCUMENT_SIZE = 10 * 1024 * 1024;
+const MAX_CLIENT_DOCUMENTS = 20;
+
+function clienteUploadDir(clienteId: string | string[]): string {
+  const id = Array.isArray(clienteId) ? clienteId[0] : clienteId;
+  const dir = resolveUploadPath('clientes', String(id));
+  if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
+  return dir;
+}
 
 @Controller('clientes')
 @UseGuards(JwtAuthGuard)
@@ -192,19 +212,56 @@ export class ClientesController {
   }
 
   @Post(':id/avatar')
-  @UseInterceptors(FileInterceptor('avatar', { storage: memoryStorage() }))
+  @UseInterceptors(
+    FileInterceptor('avatar', {
+      storage: diskStorage({
+        destination: (req, _file, cb) => {
+          try {
+            cb(null, clienteUploadDir(req.params.id));
+          } catch (error) {
+            cb(error as Error, '');
+          }
+        },
+        filename: (_req, file, cb) => {
+          const ext = extname(file.originalname).toLowerCase() || '.jpg';
+          cb(null, `avatar-${randomUUID()}${ext}`);
+        },
+      }),
+      limits: { fileSize: MAX_AVATAR_SIZE, files: 1 },
+      fileFilter: imageFileFilter,
+    }),
+  )
   uploadAvatar(
     @CurrentUser() user: AuthUser,
     @Param('id', ParseIntPipe) id: number,
     @UploadedFile() file?: Express.Multer.File,
   ) {
-    void file;
-    return this.clientesService.uploadAvatar(user, id);
+    if (!file) throw new BadRequestException('Selecione uma imagem de avatar');
+    return this.clientesService.uploadAvatar(user, id, file);
   }
 
   @Post(':id/documentos')
   @UseInterceptors(
-    FilesInterceptor('documentos', 10, { storage: memoryStorage() }),
+    FilesInterceptor('documentos', MAX_CLIENT_DOCUMENTS, {
+      storage: diskStorage({
+        destination: (req, _file, cb) => {
+          try {
+            cb(null, clienteUploadDir(req.params.id));
+          } catch (error) {
+            cb(error as Error, '');
+          }
+        },
+        filename: (_req, file, cb) => {
+          const ext = extname(file.originalname).toLowerCase() || '';
+          cb(null, `${randomUUID()}${ext}`);
+        },
+      }),
+      limits: {
+        fileSize: MAX_DOCUMENT_SIZE,
+        files: MAX_CLIENT_DOCUMENTS,
+      },
+      fileFilter: documentFileFilter,
+    }),
   )
   uploadDocumentos(
     @CurrentUser() user: AuthUser,
@@ -213,6 +270,9 @@ export class ClientesController {
     @Body('tipo') tipo?: string,
     @Body('nome') nome?: string,
   ) {
+    if (!files?.length) {
+      throw new BadRequestException('Selecione ao menos um documento');
+    }
     return this.clientesService.uploadDocumentos(user, id, files, tipo, nome);
   }
 

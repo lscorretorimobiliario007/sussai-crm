@@ -632,57 +632,58 @@ export class ClientesService {
     return this.findOne(user, id);
   }
 
-  async uploadAvatar(user: AuthUser, id: number) {
-    const cliente = await this.ensureCliente(user, id, true);
-    await this.prisma.clienteHistorico.create({
-      data: {
-        empresaId: user.empresaId,
-        clienteId: id,
-        usuarioId: user.id,
-        acao: AcaoHistoricoCliente.AVATAR_ATUALIZADO,
-      },
+  async uploadAvatar(user: AuthUser, id: number, file: Express.Multer.File) {
+    await this.ensureCliente(user, id, true);
+    const avatarUrl = `/uploads/clientes/${id}/${file.filename}`;
+
+    await this.prisma.$transaction(async (tx) => {
+      await tx.cliente.update({
+        where: { id },
+        data: { avatarUrl },
+      });
+      await tx.clienteHistorico.create({
+        data: {
+          empresaId: user.empresaId,
+          clienteId: id,
+          usuarioId: user.id,
+          acao: AcaoHistoricoCliente.AVATAR_ATUALIZADO,
+          alteracoes: { avatarUrl },
+        },
+      });
     });
-    return this.findOne(user, id) ?? cliente;
+
+    return this.findOne(user, id);
   }
 
   async uploadDocumentos(
     user: AuthUser,
     id: number,
-    files: Express.Multer.File[] | undefined,
+    files: Express.Multer.File[],
     tipo?: string,
     nome?: string,
   ) {
     await this.ensureCliente(user, id, true);
+    if (!files?.length) {
+      throw new BadRequestException('Selecione ao menos um documento');
+    }
+
     const docTipo = Object.values(TipoDocumentoCliente).includes(
       tipo as TipoDocumentoCliente,
     )
       ? (tipo as TipoDocumentoCliente)
       : TipoDocumentoCliente.OUTRO;
 
-    const payloads =
-      files && files.length > 0
-        ? files.map((file, index) => ({
-            empresaId: user.empresaId,
-            clienteId: id,
-            tipo: docTipo,
-            nome: nome?.trim() || file.originalname || `Documento ${index + 1}`,
-            nomeArquivo: file.originalname || `documento-${index + 1}`,
-            mimeType: file.mimetype || 'application/octet-stream',
-            tamanho: file.size || 0,
-            url: `/uploads/clientes/${id}/${file.filename || `doc-${Date.now()}-${index}`}`,
-          }))
-        : [
-            {
-              empresaId: user.empresaId,
-              clienteId: id,
-              tipo: docTipo,
-              nome: nome?.trim() || 'Documento',
-              nomeArquivo: 'documento-stub.txt',
-              mimeType: 'text/plain',
-              tamanho: 0,
-              url: `/uploads/clientes/${id}/stub.txt`,
-            },
-          ];
+    const payloads = files.map((file, index) => ({
+      empresaId: user.empresaId,
+      clienteId: id,
+      tipo: docTipo,
+      nome: nome?.trim() || file.originalname || `Documento ${index + 1}`,
+      nomeArquivo:
+        file.originalname || file.filename || `documento-${index + 1}`,
+      mimeType: file.mimetype || 'application/octet-stream',
+      tamanho: file.size || 0,
+      url: `/uploads/clientes/${id}/${file.filename}`,
+    }));
 
     await this.prisma.$transaction(async (tx) => {
       await tx.clienteDocumento.createMany({ data: payloads });

@@ -1,7 +1,5 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { ServeStaticModule } from '@nestjs/serve-static';
-import { join } from 'path';
 
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
@@ -10,7 +8,6 @@ import { UsersModule } from './users/users.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { CompaniesModule } from './companies/companies.module';
 import { PropertiesModule } from './properties/properties.module';
-import { UploadsModule } from './uploads/uploads.module';
 import { SiteModule } from './site/site.module';
 import { LeadsModule } from './leads/leads.module';
 import { PipelineModule } from './pipeline/pipeline.module';
@@ -40,11 +37,6 @@ import { AiModule } from './ai/ai.module';
       envFilePath: ['.env', '.env.local'],
     }),
 
-    ServeStaticModule.forRoot({
-      rootPath: join(__dirname, '..', 'uploads'),
-      serveRoot: '/uploads',
-    }),
-
     PrismaModule,
     AuditModule,
     AuthModule,
@@ -52,7 +44,6 @@ import { AiModule } from './ai/ai.module';
     CompaniesModule,
     EmpresaModule,
     PropertiesModule,
-    UploadsModule,
     SiteModule,
     LeadsModule,
     PipelineModule,

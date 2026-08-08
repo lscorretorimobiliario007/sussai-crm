@@ -424,7 +424,7 @@ navigate(`/imoveis/${data.id}`);
             />
           </Grid>
 
-              <Grid item xs={12}>
+          <Grid size={{ xs: 12 }}>
             <Input
               label="Título"
               value={form.titulo}
@@ -436,7 +436,7 @@ navigate(`/imoveis/${data.id}`);
             />
           </Grid>
 
-          <Grid item xs={12}>
+          <Grid size={{ xs: 12 }}>
             <Input
               label="Descrição"
               multiline
@@ -447,7 +447,7 @@ navigate(`/imoveis/${data.id}`);
             />
           </Grid>
 
-          <Grid item xs={12} md={6}>
+          <Grid size={{ xs: 12, md: 6 }}>
             <Input
               select
               label="Finalidade"
@@ -463,7 +463,7 @@ navigate(`/imoveis/${data.id}`);
             </Input>
           </Grid>
 
-          <Grid item xs={12} md={6}>
+          <Grid size={{ xs: 12, md: 6 }}>
             <Input
               select
               label="Tipo"
@@ -480,7 +480,7 @@ navigate(`/imoveis/${data.id}`);
           </Grid>
 
           {form.finalidade === "VENDA" && (
-            <Grid item xs={12} md={6}>
+            <Grid size={{ xs: 12, md: 6 }}>
               <Input
                 label="Valor de Venda"
                 value={form.valorVenda}
@@ -495,7 +495,7 @@ navigate(`/imoveis/${data.id}`);
           )}
 
           {form.finalidade === "LOCACAO" && (
-            <Grid item xs={12} md={6}>
+            <Grid size={{ xs: 12, md: 6 }}>
               <Input
                 label="Valor da Locação"
                 value={form.valorLocacao}
@@ -508,16 +508,14 @@ navigate(`/imoveis/${data.id}`);
               />
             </Grid>
           )}
-          <Grid item xs={12}>
-            <Typography
-              variant="h6"
-              sx={{ mt: 2 }}
-            >
+
+          <Grid size={{ xs: 12 }}>
+            <Typography variant="h6" sx={{ mt: 2 }}>
               Endereço
             </Typography>
           </Grid>
 
-          <Grid item xs={12} md={3}>
+          <Grid size={{ xs: 12, md: 3 }}>
             <Input
               label="CEP"
               value={form.cep}
@@ -539,7 +537,7 @@ navigate(`/imoveis/${data.id}`);
             />
           </Grid>
 
-          <Grid item xs={12} md={7}>
+          <Grid size={{ xs: 12, md: 7 }}>
             <Input
               label="Rua"
               value={form.endereco}
@@ -551,7 +549,7 @@ navigate(`/imoveis/${data.id}`);
             />
           </Grid>
 
-          <Grid item xs={12} md={2}>
+          <Grid size={{ xs: 12, md: 2 }}>
             <Input
               label="Número"
               value={form.numero}
@@ -560,7 +558,7 @@ navigate(`/imoveis/${data.id}`);
             />
           </Grid>
 
-          <Grid item xs={12} md={4}>
+          <Grid size={{ xs: 12, md: 4 }}>
             <Input
               label="Bairro"
               value={form.bairro}
@@ -572,7 +570,7 @@ navigate(`/imoveis/${data.id}`);
             />
           </Grid>
 
-          <Grid item xs={12} md={4}>
+          <Grid size={{ xs: 12, md: 4 }}>
             <Input
               label="Cidade"
               value={form.cidade}
@@ -584,7 +582,7 @@ navigate(`/imoveis/${data.id}`);
             />
           </Grid>
 
-          <Grid item xs={12} md={4}>
+          <Grid size={{ xs: 12, md: 4 }}>
             <Input
               label="Estado"
               value={form.estado}
@@ -597,16 +595,13 @@ navigate(`/imoveis/${data.id}`);
             />
           </Grid>
 
-          <Grid item xs={12}>
-            <Typography
-              variant="h6"
-              sx={{ mt: 2 }}
-            >
+          <Grid size={{ xs: 12 }}>
+            <Typography variant="h6" sx={{ mt: 2 }}>
               Características
             </Typography>
           </Grid>
 
-          <Grid item xs={6} md={3}>
+          <Grid size={{ xs: 6, md: 3 }}>
             <Input
               type="number"
               label="Quartos"
@@ -615,7 +610,7 @@ navigate(`/imoveis/${data.id}`);
             />
           </Grid>
 
-          <Grid item xs={6} md={3}>
+          <Grid size={{ xs: 6, md: 3 }}>
             <Input
               type="number"
               label="Banheiros"
@@ -624,7 +619,7 @@ navigate(`/imoveis/${data.id}`);
             />
           </Grid>
 
-          <Grid item xs={6} md={3}>
+          <Grid size={{ xs: 6, md: 3 }}>
             <Input
               type="number"
               label="Suítes"
@@ -633,7 +628,7 @@ navigate(`/imoveis/${data.id}`);
             />
           </Grid>
 
-          <Grid item xs={6} md={3}>
+          <Grid size={{ xs: 6, md: 3 }}>
             <Input
               type="number"
               label="Vagas"
@@ -642,7 +637,7 @@ navigate(`/imoveis/${data.id}`);
             />
           </Grid>
 
-          <Grid item xs={12} md={6}>
+          <Grid size={{ xs: 12, md: 6 }}>
             <Input
               label="Área Terreno (m²)"
               value={form.areaTerreno}
@@ -651,7 +646,7 @@ navigate(`/imoveis/${data.id}`);
             />
           </Grid>
 
-          <Grid item xs={12} md={6}>
+          <Grid size={{ xs: 12, md: 6 }}>
             <Input
               label="Área Construída (m²)"
               value={form.areaConstruida}
@@ -660,16 +655,13 @@ navigate(`/imoveis/${data.id}`);
             />
           </Grid>
 
-          <Grid item xs={12}>
-            <Typography
-              variant="h6"
-              sx={{ mt: 2 }}
-            >
+          <Grid size={{ xs: 12 }}>
+            <Typography variant="h6" sx={{ mt: 2 }}>
               Publicação
             </Typography>
           </Grid>
 
-          <Grid item xs={12}>
+          <Grid size={{ xs: 12 }}>
             <Stack direction="row" spacing={3}>
               <FormControlLabel
                 control={
@@ -692,12 +684,14 @@ navigate(`/imoveis/${data.id}`);
               />
             </Stack>
           </Grid>
+
           {editando && (
-  <Grid item xs={12}>
-    <PropertyImages propertyId={id} title={form.titulo || "Imóvel"} />
-  </Grid>
-)}
-                    <Grid item xs={12}>
+            <Grid size={{ xs: 12 }}>
+              <PropertyImages propertyId={id} title={form.titulo || "Imóvel"} />
+            </Grid>
+          )}
+
+          <Grid size={{ xs: 12 }}>
             <Stack
               direction="row"
               justifyContent="flex-end"
@@ -711,11 +705,11 @@ navigate(`/imoveis/${data.id}`);
                 Cancelar
               </Button>
 
-             <Button
-  variant="contained"
-  onClick={salvar}
-  disabled={saving}
->
+              <Button
+                variant="contained"
+                onClick={salvar}
+                disabled={saving}
+              >
                 {saving
                   ? "Salvando..."
                   : editando

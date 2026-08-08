@@ -4,12 +4,12 @@ import { randomUUID } from 'crypto';
 import { BadRequestException } from '@nestjs/common';
 import { diskStorage } from 'multer';
 import type { Request } from 'express';
+import { resolveUploadPath } from '../../common/utils/uploads-root';
 
-export const PROPERTY_UPLOAD_ROOT = join(
-  process.cwd(),
-  'uploads',
-  'properties',
-);
+export function getPropertyUploadRoot(): string {
+  return resolveUploadPath('properties');
+}
+
 export const MAX_PROPERTY_IMAGE_SIZE = 10 * 1024 * 1024;
 export const MAX_PROPERTY_IMAGES = 40;
 
@@ -30,7 +30,7 @@ const MIME_EXTENSION: Record<string, string> = {
 };
 
 export function ensurePropertyUploadDir(propertyId: number | string): string {
-  const dir = join(PROPERTY_UPLOAD_ROOT, String(propertyId));
+  const dir = join(getPropertyUploadRoot(), String(propertyId));
   if (!existsSync(dir)) {
     mkdirSync(dir, { recursive: true });
   }

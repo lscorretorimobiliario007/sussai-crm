@@ -13,7 +13,7 @@ import {
 import { AnyFilesInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { existsSync, mkdirSync } from 'fs';
-import { extname, join } from 'path';
+import { extname } from 'path';
 import { randomUUID } from 'crypto';
 import { UserProfile } from '@prisma/client';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -22,17 +22,17 @@ import type { AuthUser } from '../auth/types/auth-user.type';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { imageFileFilter } from '../common/upload/file-filters';
+import { resolveUploadPath } from '../common/utils/uploads-root';
 import { EmpresaService } from './empresa.service';
 import { UpdateEmpresaDto } from './dto/update-empresa.dto';
 
-const EMPRESA_UPLOAD_ROOT = join(process.cwd(), 'uploads', 'empresa');
 const MAX_LOGO_SIZE = 5 * 1024 * 1024;
 
 const uploadInterceptor = AnyFilesInterceptor({
   storage: diskStorage({
     destination: (req, _file, cb) => {
       const user = (req as typeof req & { user?: AuthUser }).user;
-      const dir = join(EMPRESA_UPLOAD_ROOT, String(user?.empresaId || '0'));
+      const dir = resolveUploadPath('empresa', String(user?.empresaId || '0'));
       if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
       cb(null, dir);
     },

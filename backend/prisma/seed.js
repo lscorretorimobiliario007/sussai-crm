@@ -6,6 +6,40 @@ const prisma = new PrismaClient();
 const ADMIN_EMAIL = "admin@topconceicao.com.br";
 const ADMIN_PASSWORD = "Admin@123";
 
+const DEFAULT_PIPELINE_STAGES = [
+  { nome: "Aguardando contato", ordem: 1, cor: "#6366f1" },
+  { nome: "Primeiro Contato", ordem: 2, cor: "#8b5cf6" },
+  { nome: "Visita Agendada", ordem: 3, cor: "#a855f7" },
+  { nome: "Proposta", ordem: 4, cor: "#f59e0b" },
+  { nome: "Negociação", ordem: 5, cor: "#f97316" },
+  { nome: "Fechado", ordem: 6, cor: "#22c55e" },
+  { nome: "Perdido", ordem: 7, cor: "#ef4444" },
+];
+
+async function ensurePipelineStages(empresaId) {
+  const existing = await prisma.pipelineStage.count({ where: { empresaId } });
+  if (existing > 0) {
+    await prisma.pipelineStage.updateMany({
+      where: {
+        empresaId,
+        ordem: 1,
+        nome: { in: ["Novo", "NOVO", "novo"] },
+      },
+      data: { nome: "Aguardando contato" },
+    });
+    return;
+  }
+  await prisma.pipelineStage.createMany({
+    data: DEFAULT_PIPELINE_STAGES.map((stage) => ({
+      empresaId,
+      nome: stage.nome,
+      ordem: stage.ordem,
+      cor: stage.cor,
+      ativo: true,
+    })),
+  });
+}
+
 async function main() {
   const senha = await bcrypt.hash(ADMIN_PASSWORD, 10);
 
@@ -13,6 +47,7 @@ async function main() {
     where: { cnpj: "12345678000190" },
     update: {
       nome: "Top Conceicao Imoveis",
+      nomeFantasia: "Top Conceição",
       email: "contato@topconceicao.com.br",
       telefone: "(11) 4000-0000",
       ativo: true,
@@ -20,6 +55,7 @@ async function main() {
     },
     create: {
       nome: "Top Conceicao Imoveis",
+      nomeFantasia: "Top Conceição",
       cnpj: "12345678000190",
       email: "contato@topconceicao.com.br",
       telefone: "(11) 4000-0000",
@@ -86,6 +122,8 @@ async function main() {
       ativo: true,
     },
   });
+
+  await ensurePipelineStages(empresa.id);
 
   console.log("Seed executado com sucesso.");
   console.log(`ADMIN: ${ADMIN_EMAIL} / ${ADMIN_PASSWORD}`);

@@ -49,6 +49,13 @@ export class CompaniesService {
     });
   }
 
+  findAllForTenant(empresaId: number) {
+    return this.prisma.empresa.findMany({
+      where: { id: empresaId },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
   async findOne(id: number) {
     const empresa = await this.prisma.empresa.findUnique({ where: { id } });
     if (!empresa) {

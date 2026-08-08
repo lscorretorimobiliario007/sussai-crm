@@ -26,7 +26,20 @@
     "preflight": "node scripts/rc-preflight.mjs",
     "smoke:login": "node scripts/smoke-login.mjs",
     "e2e:rc": "node scripts/e2e-stabilization.mjs",
-    "rc:gate": "node scripts/rc-gate.mjs"
+    "rc:gate": "node scripts/rc-gate.mjs",
+    "audit:empresa": "node scripts/audit-empresa-columns.mjs",
+    "audit:db": "node scripts/audit-database.mjs",
+    "check:drift": "node scripts/check-db-drift.mjs",
+    "prisma:migrate:deploy": "prisma migrate deploy",
+    "prisma:generate": "prisma generate",
+    "smoke:api": "node scripts/smoke-api.mjs",
+    "smoke:site": "node scripts/smoke-site.mjs",
+    "smoke:health": "node scripts/smoke-health.mjs",
+    "vps:fix-empresa": "npx prisma migrate deploy && npx prisma generate && node scripts/audit-empresa-columns.mjs && npx prisma db seed && node scripts/smoke-login.mjs",
+    "repair:production-db": "node scripts/repair-production-baseline.mjs",
+    "repair:production-db:dry": "node scripts/repair-production-baseline.mjs --dry-run",
+    "release:gate": "node scripts/release-gate.mjs",
+    "release:responsive": "node scripts/responsive-gate.mjs"
   },
   "dependencies": {
     "@nestjs/common": "^11.0.1",
