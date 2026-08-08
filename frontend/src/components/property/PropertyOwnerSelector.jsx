@@ -202,24 +202,30 @@ export default function PropertyOwnerSelector({
               </Stack>
             </li>
           )}
-          renderInput={(params) => (
-            <TextField
-              {...params}
-              label="Proprietário"
-              required
-              error={Boolean(error)}
-              helperText={helperText || "Pesquise por nome, CPF ou CNPJ"}
-              InputProps={{
-                ...params.InputProps,
-                endAdornment: (
-                  <>
-                    {loading ? <CircularProgress size={18} /> : null}
-                    {params.InputProps.endAdornment}
-                  </>
-                ),
-              }}
-            />
-          )}
+          renderInput={(params) => {
+            const { InputProps, inputProps, ...rest } = params;
+            return (
+              <TextField
+                {...rest}
+                label="Proprietário"
+                required
+                error={Boolean(error)}
+                helperText={helperText || "Pesquise por nome, CPF ou CNPJ"}
+                slotProps={{
+                  htmlInput: inputProps,
+                  input: {
+                    ...InputProps,
+                    endAdornment: (
+                      <>
+                        {loading ? <CircularProgress size={18} /> : null}
+                        {InputProps?.endAdornment}
+                      </>
+                    ),
+                  },
+                }}
+              />
+            );
+          }}
         />
         <Button
           variant="outlined"
@@ -258,7 +264,20 @@ export default function PropertyOwnerSelector({
 
           <Typography variant="subtitle2" color="text.secondary">Endereço</Typography>
           <Grid container spacing={2}>
-            <Grid size={{ xs: 12, md: 3 }}><Input label="CEP" value={form.cep} onChange={(event) => handleCep(event.target.value)} error={Boolean(errors.cep)} helperText={errors.cep} InputProps={{ endAdornment: cepLoading ? <CircularProgress size={18} /> : null }} /></Grid>
+            <Grid size={{ xs: 12, md: 3 }}>
+              <Input
+                label="CEP"
+                value={form.cep}
+                onChange={(event) => handleCep(event.target.value)}
+                error={Boolean(errors.cep)}
+                helperText={errors.cep}
+                slotProps={{
+                  input: {
+                    endAdornment: cepLoading ? <CircularProgress size={18} /> : null,
+                  },
+                }}
+              />
+            </Grid>
             <Grid size={{ xs: 12, md: 7 }}><Input label="Rua" value={form.rua} onChange={(event) => update("rua", event.target.value)} /></Grid>
             <Grid size={{ xs: 12, md: 2 }}><Input label="Número" value={form.numero} onChange={(event) => update("numero", event.target.value)} /></Grid>
             <Grid size={{ xs: 12, md: 4 }}><Input label="Complemento" value={form.complemento} onChange={(event) => update("complemento", event.target.value)} /></Grid>

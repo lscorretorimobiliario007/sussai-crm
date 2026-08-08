@@ -184,7 +184,24 @@ export default function ProprietarioForm() {
         <Card>
           <Typography variant="h6" fontWeight={800} sx={{ mb: 2 }}>Endereço</Typography>
           <Grid container spacing={2}>
-            <Grid size={{ xs: 12, md: 3 }}><Input label="CEP" value={form.cep} onChange={(event) => handleCep(event.target.value)} error={Boolean(errors.cep)} helperText={errors.cep} InputProps={{ endAdornment: cepLoading ? <InputAdornment position="end"><CircularProgress size={18} /></InputAdornment> : null }} /></Grid>
+            <Grid size={{ xs: 12, md: 3 }}>
+              <Input
+                label="CEP"
+                value={form.cep}
+                onChange={(event) => handleCep(event.target.value)}
+                error={Boolean(errors.cep)}
+                helperText={errors.cep}
+                slotProps={{
+                  input: {
+                    endAdornment: cepLoading ? (
+                      <InputAdornment position="end">
+                        <CircularProgress size={18} />
+                      </InputAdornment>
+                    ) : null,
+                  },
+                }}
+              />
+            </Grid>
             <Grid size={{ xs: 12, md: 7 }}><Input label="Rua" value={form.rua} onChange={(event) => update("rua", event.target.value)} /></Grid>
             <Grid size={{ xs: 12, md: 2 }}><Input label="Número" value={form.numero} onChange={(event) => update("numero", event.target.value)} /></Grid>
             <Grid size={{ xs: 12, md: 4 }}><Input label="Complemento" value={form.complemento} onChange={(event) => update("complemento", event.target.value)} /></Grid>

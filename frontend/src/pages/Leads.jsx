@@ -276,15 +276,16 @@ export default function Leads() {
     setSaving(true);
     try {
       await api.post("/leads", {
-        ...form,
-        valor: form.valor === "" ? null : Number(form.valor),
-        valorPrevisto: form.valorPrevisto === "" ? (form.valor === "" ? null : Number(form.valor)) : Number(form.valorPrevisto),
-        probabilidade: Number(form.probabilidade),
-        previsaoFechamento: form.previsaoFechamento || null,
-        clienteId: form.clienteId ? Number(form.clienteId) : null,
+        nome: form.titulo.trim(),
+        titulo: form.titulo.trim(),
+        origem: form.origem || "MANUAL",
+        mensagem: form.observacoes || null,
+        observacoes: form.observacoes || null,
         imovelId: form.imovelId ? Number(form.imovelId) : null,
         corretorId: form.corretorId ? Number(form.corretorId) : null,
         etapaId: form.etapaId ? Number(form.etapaId) : null,
+        propertyId: form.imovelId ? Number(form.imovelId) : null,
+        assignedUserId: form.corretorId ? Number(form.corretorId) : null,
       });
       toast.success("Oportunidade criada.");
       setFormOpen(false);
@@ -298,9 +299,9 @@ export default function Leads() {
 
   const moveLead = async (leadId, etapaId, motivo = null) => {
     try {
-      await api.patch(`/leads/${leadId}/mover`, {
-        etapaId: Number(etapaId),
-        ...(motivo ? { motivoPerda: motivo } : {}),
+      await api.patch(`/leads/${leadId}/move`, {
+        stageId: Number(etapaId),
+        ...(motivo ? { observacao: motivo } : {}),
       });
       toast.success("Oportunidade movida.");
       await load();
@@ -433,7 +434,13 @@ export default function Leads() {
 
   const updateDetailField = async (payload) => {
     try {
-      await api.put(`/leads/${selectedId}`, payload);
+      await api.patch(`/leads/${selectedId}`, {
+        nome: payload.titulo || payload.nome,
+        propertyId: payload.imovelId ? Number(payload.imovelId) : null,
+        assignedUserId: payload.corretorId ? Number(payload.corretorId) : null,
+        observacoes: payload.observacoes || payload.notas || null,
+        origem: payload.origem || undefined,
+      });
       loadDetail(selectedId);
       load();
     } catch (error) {

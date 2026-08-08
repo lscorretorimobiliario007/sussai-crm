@@ -21,11 +21,33 @@ export class QueryLeadDto {
   @Type(() => Number)
   @IsInt()
   @Min(1)
+  corretorId?: number;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
   propertyId?: number;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  imovelId?: number;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  clienteId?: number;
 
   @IsOptional()
   @IsString()
   search?: string;
+
+  @IsOptional()
+  @IsString()
+  busca?: string;
 
   @IsOptional()
   @Type(() => Number)
@@ -37,6 +59,6 @@ export class QueryLeadDto {
   @Type(() => Number)
   @IsInt()
   @Min(1)
-  @Max(100)
-  limit?: number = 20;
+  @Max(500)
+  limit?: number = 500;
 }

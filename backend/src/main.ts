@@ -39,15 +39,24 @@ async function bootstrap() {
     .split(',')
     .map((item) => item.trim())
     .filter(Boolean);
+  const isProduction = process.env.NODE_ENV === 'production';
 
-  if (process.env.NODE_ENV === 'production' && allowedOrigins.length === 0) {
+  if (isProduction && allowedOrigins.length === 0) {
     throw new Error(
       'CORS_ORIGIN must be set in production (comma-separated origins). Refusing to start with open CORS.',
     );
   }
 
+  // Production: explicit allow-list only.
+  // Development: if CORS_ORIGIN is set, use it; otherwise reflect the request
+  // Origin so localhost and 127.0.0.1 both work with credentials.
   app.enableCors({
-    origin: allowedOrigins.length > 0 ? allowedOrigins : false,
+    origin:
+      allowedOrigins.length > 0
+        ? allowedOrigins
+        : isProduction
+          ? false
+          : true,
     credentials: true,
   });
 

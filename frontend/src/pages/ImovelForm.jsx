@@ -520,13 +520,15 @@ navigate(`/imoveis/${data.id}`);
               label="CEP"
               value={form.cep}
               onChange={handleCepChange}
-              inputProps={{ inputMode: "numeric", maxLength: 9 }}
-              InputProps={{
-                endAdornment: cepLoading ? (
-                  <InputAdornment position="end">
-                    <CircularProgress size={18} />
-                  </InputAdornment>
-                ) : null,
+              slotProps={{
+                htmlInput: { inputMode: "numeric", maxLength: 9 },
+                input: {
+                  endAdornment: cepLoading ? (
+                    <InputAdornment position="end">
+                      <CircularProgress size={18} />
+                    </InputAdornment>
+                  ) : null,
+                },
               }}
               error={Boolean(errors.cep)}
               helperText={

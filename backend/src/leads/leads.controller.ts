@@ -9,6 +9,7 @@ import {
   ParseIntPipe,
   Patch,
   Post,
+  Put,
   Query,
   UseGuards,
 } from '@nestjs/common';
@@ -36,6 +37,16 @@ export class LeadsController {
     return this.leadsService.findAll(user.empresaId, query);
   }
 
+  @Get('dashboard')
+  dashboard(@CurrentUser() user: AuthUser) {
+    return this.leadsService.dashboard(user.empresaId);
+  }
+
+  @Get('opcoes')
+  opcoes(@CurrentUser() user: AuthUser) {
+    return this.leadsService.opcoes(user);
+  }
+
   @Get('kanban')
   kanban(@CurrentUser() user: AuthUser) {
     return this.leadsService.kanban(user.empresaId);
@@ -58,8 +69,26 @@ export class LeadsController {
     return this.leadsService.move(user.empresaId, user.id, id, dto);
   }
 
+  @Patch(':id/mover')
+  mover(
+    @CurrentUser() user: AuthUser,
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: MoveLeadDto,
+  ) {
+    return this.leadsService.move(user.empresaId, user.id, id, dto);
+  }
+
   @Patch(':id')
   update(
+    @CurrentUser() user: AuthUser,
+    @Param('id', ParseIntPipe) id: number,
+    @Body() updateLeadDto: UpdateLeadDto,
+  ) {
+    return this.leadsService.update(user.empresaId, id, updateLeadDto);
+  }
+
+  @Put(':id')
+  replace(
     @CurrentUser() user: AuthUser,
     @Param('id', ParseIntPipe) id: number,
     @Body() updateLeadDto: UpdateLeadDto,
